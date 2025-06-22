@@ -1,1 +1,287 @@
-# discord-bot
+# Sanity OSRS Clan API Documentation
+
+This document provides documentation for the Sanity OSRS Clan Flask API. It details the available endpoints, the data they return, and provides example responses.
+
+The base URL for all API endpoints is: `https://sanityosrs.com/api`
+
+---
+
+## 1. Users
+
+### GET /api/users
+
+Retrieves a comprehensive list of all active users in the clan.
+
+**Response Fields:**
+
+* `displayName` (string): The user's primary display name.
+* `points` (number): The user's total points.
+* `rankId` (number): The ID corresponding to the user's rank.
+* `rank_name` (string): The name of the user's rank (e.g., "Master", "Champion").
+* `mainRSN` (string): The user's main RuneScape Name.
+* `altRSN` (string): The user's alternative RuneScape Name.
+* `joinDate` (string): The date the user joined the clan (YYYY-MM-DDTHH:mm:ss.sssZ).
+* `diaryPoints` (number): The number of achievement diary points the user has.
+* `masterDiaryPoints` (number): The number of master-tier achievement diary completions.
+* `flavourText` (string): The descriptive text for the user's claimed diary tier.
+* `diaryTierClaimed` (number): The ID of the highest diary tier the user has claimed.
+* `points_past_3_months` (number): The total points accumulated by the user in the last three months.
+
+**Example Response:**
+
+```json
+[
+  {
+    "altRSN": "AltName",
+    "diaryPoints": 15,
+    "diaryTierClaimed": 2,
+    "displayName": "TestUser",
+    "flavourText": "Medium",
+    "joinDate": "2023-01-15T23:00:00.000Z",
+    "mainRSN": "MainUser",
+    "masterDiaryPoints": 1,
+    "points": 12500,
+    "points_past_3_months": 800,
+    "rankId": 8,
+    "rank_name": "Legend"
+  }
+]
+
+2. Diary Times
+GET /api/diarytimes
+Fetches the established completion times for various achievement diary tasks.
+
+Response Fields:
+
+name (string): The name of the boss for the diary task.
+
+scale (number): The team size (scale) for the diary task.
+
+maxDifficulty (number): The highest difficulty tier available for this task.
+
+timeEasy (string): The target time for the "Easy" tier.
+
+timeMedium (string): The target time for the "Medium" tier.
+
+timeHard (string): The target time for the "Hard" tier.
+
+timeElite (string): The target time for the "Elite" tier.
+
+timeMaster (string): The target time for the "Master" tier.
+
+Example Response:
+
+[
+  {
+    "maxDifficulty": 5,
+    "name": "Chambers of Xeric",
+    "scale": 5,
+    "timeEasy": "25:00,00",
+    "timeElite": "18:00,00",
+    "timeHard": "20:00,00",
+    "timeMaster": "16:00,00",
+    "timeMedium": "22:00,00"
+  }
+]
+
+3. Approved Drops
+GET /api/approveddrops
+Provides statistics on drops approved by reviewers over the last 12 months.
+
+Response Fields:
+
+count(*) (number): The number of drops a specific reviewer has approved.
+
+displayName (string): The display name of the reviewer.
+
+name (string): The status of the submission (e.g., "Approved").
+
+Example Response:
+
+[
+  {
+    "count(*)": 152,
+    "displayName": "ReviewerA",
+    "name": "Approved"
+  }
+]
+
+4. Bingo Winners
+GET /api/bingowinners
+Lists the winners of past bingo events.
+
+Response Fields:
+
+bingoId (number): The unique identifier for the bingo event.
+
+bingoName (string): The name of the bingo event.
+
+teamName (string): The name of the winning team.
+
+participants (string): A comma-separated list of the participants on the winning team.
+
+Example Response:
+
+[
+  {
+    "bingoId": 1,
+    "bingoName": "Summer Bingo 2024",
+    "participants": "Player1, Player2, Player3",
+    "teamName": "The Winners"
+  }
+]
+
+5. Approved Personal Bests
+GET /api/approvedpbs
+Provides statistics on personal bests (PBs) approved by reviewers over the last 12 months.
+
+Response Fields:
+
+count(*) (number): The number of PBs a specific reviewer has processed.
+
+displayName (string): The display name of the reviewer.
+
+name (string): The status of the submission (e.g., "Approved", "Denied").
+
+Example Response:
+
+[
+  {
+    "count(*)": 88,
+    "displayName": "ReviewerB",
+    "name": "Approved"
+  }
+]
+
+6. Points
+GET /api/points
+Retrieves all point-awarding entries from the point tracker.
+
+GET /api/pointslimited
+Retrieves the last 1000 point-awarding entries from the point tracker.
+
+Response Fields:
+
+Id (number): The unique ID for the point entry.
+
+displayName (string): The display name of the user who received the points.
+
+points (number): The number of points awarded.
+
+notes (string): Any notes associated with the point entry.
+
+messageUrl (string): A URL to the original submission message (if applicable).
+
+date (string): The date the points were awarded (YYYY-MM-DDTHH:mm:ss.sssZ).
+
+Example Response:
+
+[
+  {
+    "Id": 2048,
+    "date": "2024-06-20T10:00:00.000Z",
+    "displayName": "TestUser",
+    "messageUrl": "https://discord.com/...",
+    "notes": "Theatre of Blood drop",
+    "points": 50
+  }
+]
+
+7. Boss Images
+GET /api/bossImages
+Returns a list of bosses and their corresponding image URLs.
+
+Response Fields:
+
+name (string): The name of the boss.
+
+imageUrl (string): The URL for the boss's image.
+
+Example Response:
+
+[
+  {
+    "imageUrl": "https://path/to/image/zulrah.png",
+    "name": "Zulrah"
+  }
+]
+
+8. Drops
+GET /api/drops
+Retrieves all drop submissions.
+
+GET /api/dropslimited
+Retrieves the last 1000 drop submissions.
+
+Response Fields:
+
+Id (number): The unique ID of the submission.
+
+submitter (string): The display name of the user who submitted the drop.
+
+member_names (string): A comma-separated list of the clan members involved in the drop.
+
+notes (string): Notes included with the submission.
+
+value (number): The value of the drop in GP.
+
+status_name (string): The current status of the submission (e.g., "Approved", "Submitted").
+
+imageUrl (string): A URL to the screenshot of the drop.
+
+reviewedDate (string): The date the submission was reviewed (YYYY-MM-DDTHH:mm:ss.sssZ).
+
+reviewer (string): The display name of the user who reviewed the submission.
+
+Example Response:
+
+[
+  {
+    "Id": 512,
+    "imageUrl": "https://i.imgur.com/...",
+    "member_names": "PlayerX, PlayerY",
+    "notes": "First Twisted Bow!",
+    "reviewedDate": "2024-06-21T14:30:00.000Z",
+    "reviewer": "ReviewerA",
+    "status_name": "Approved",
+    "submitter": "PlayerX",
+    "value": 1200000000
+  }
+]
+
+9. Personal Bests
+GET /api/personalbests
+Retrieves all approved personal best submissions.
+
+GET /api/personalbestslimited
+Retrieves the last 1000 approved personal best submissions.
+
+Response Fields:
+
+submissionId (number): The unique ID for the PB submission.
+
+member_names (string): A comma-separated list of the clan members who achieved the PB.
+
+boss_name (string): The name of the boss.
+
+scale (number): The team size for the PB.
+
+time (string): The record time achieved.
+
+imageUrl (string): A URL to the screenshot of the PB.
+
+submittedDate (string): The date the PB was submitted (YYYY-MM-DDTHH:mm:ss.sssZ).
+
+Example Response:
+
+[
+  {
+    "boss_name": "Theatre of Blood",
+    "imageUrl": "https://i.imgur.com/...",
+    "member_names": "Pondez, Sanity",
+    "scale": 5,
+    "submissionId": 1024,
+    "submittedDate": "2024-06-19T08:00:00.000Z",
+    "time": "15:30,50"
+  }
+]
