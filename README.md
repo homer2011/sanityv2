@@ -1,4 +1,3 @@
-# sanity
 # Sanity OSRS Clan API Documentation
 
 This document provides documentation for the Sanity OSRS Clan Flask API. It details the available endpoints, the data they return, and provides example responses.
@@ -182,7 +181,7 @@ Example Response:
     "Id": 2048,
     "date": "2024-06-20T10:00:00.000Z",
     "displayName": "TestUser",
-    "messageUrl": "[https://discord.com/](https://discord.com/)...",
+    "messageUrl": "https://discord.com/...",
     "notes": "Theatre of Blood drop",
     "points": 50
   }
@@ -239,7 +238,7 @@ Example Response:
 [
   {
     "Id": 512,
-    "imageUrl": "[https://i.imgur.com/](https://i.imgur.com/)...",
+    "imageUrl": "https://i.imgur.com/...",
     "member_names": "PlayerX, PlayerY",
     "notes": "First Twisted Bow!",
     "reviewedDate": "2024-06-21T14:30:00.000Z",
@@ -278,7 +277,7 @@ Example Response:
 [
   {
     "boss_name": "Theatre of Blood",
-    "imageUrl": "[https://i.imgur.com/](https://i.imgur.com/)...",
+    "imageUrl": "https://i.imgur.com/...",
     "member_names": "Pondez, Sanity",
     "scale": 5,
     "submissionId": 1024,
