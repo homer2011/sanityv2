@@ -57,6 +57,7 @@ def get_users_data():
             u.masterDiaryPoints, 
             d.flavourText, 
             u.diaryTierClaimed,
+            u.nationality,
             -- This subquery calculates the points for the last 3 months for each user
             COALESCE((
                 SELECT SUM(pt.points) 

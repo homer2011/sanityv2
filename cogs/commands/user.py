@@ -38,6 +38,19 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 """
+current_dir = pathlib.Path(__file__).parent
+dotenv_path = current_dir / '..' / '..' / 'botsetup.env' # This assumes 'botsetup.env' is directly in 'your_project/'
+# Resolve to an absolute path for robustness
+dotenv_path = dotenv_path.resolve()
+
+if dotenv_path.exists():
+    load_dotenv(dotenv_path)
+    print(f"Loaded .env from: {dotenv_path}")
+else:
+    print(f"Warning: {dotenv_path} not found.")
+
+# Access your API keys
+apikey = os.getenv("x-api-key")
 
 def getNameFromUserId(userId):
     mycursor.execute(
@@ -1677,7 +1690,7 @@ class User(commands.Cog):
         await ctx.defer()
 
         headers = {
-            'x-api-key': 'prjobo42nwlfnnjiy4sebqlb',
+            'x-api-key': f'{apikey}',
             'sanity discord bot': 'sanity discord bot'
         }
 

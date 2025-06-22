@@ -329,7 +329,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-700">
-                            <tr><td colspan="11" class="text-center py-4 text-gray-400">Loading data...</td></tr>
+                            <tr><td colspan="10" class="text-center py-4 text-gray-400">Loading data...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -588,7 +588,6 @@
                         <div>
                             <h2 id="userNameDisplay" class="text-3xl font-bold text-custom-blue-400"></h2>
                             <p class="text-lg text-gray-300 flex items-center">
-                                <span class="mr-2">Rank:</span>
                                 <img id="userRankIcon" src="" alt="Rank Icon" class="w-[13px] h-[13px] inline-block mr-1" onerror="this.onerror=null;this.src='https://placehold.co/13x13/2a608d/ffffff?text=?'">
                                 <span id="userRankName"></span>
                             </p>
@@ -919,7 +918,7 @@
             tableBody.innerHTML = '';
 
             if (usersToDisplay.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="11" class="text-center py-4 text-gray-400">No matching users found.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-gray-400">No matching users found.</td></tr>`;
                 return;
             }
 
@@ -934,7 +933,17 @@
                 const formattedPoints = user.points ? parseInt(user.points).toLocaleString('de-DE') : '0';
                 const formattedPoints3Months = user.points_past_3_months ? parseInt(user.points_past_3_months).toLocaleString('de-DE') : '0';
                 const formattedJoinDate = formatToDDMMYYYY(user.joinDate);
-                const displayNameContent = `<a href="#userprofile?user=${encodeURIComponent(user.displayName)}" class="text-custom-blue-400 hover:underline">${user.displayName || 'N/A'}</a>`;
+
+                const flagHtml = (user.nationality && user.nationality !== 'AQ')
+                    ? `<img src="https://flagcdn.com/w20/${user.nationality.toLowerCase()}.png" alt="${user.nationality}" class="inline-block h-4 w-5 mr-2 rounded-sm" onerror="this.style.display='none'">`
+                    : '';
+
+                const displayNameContent = `
+                    <div class="flex items-center">
+                        ${flagHtml}
+                        <a href="#userprofile?user=${encodeURIComponent(user.displayName)}" class="text-custom-blue-400 hover:underline">${user.displayName || 'N/A'}</a>
+                    </div>
+                `;
 
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">${displayNameContent}</td>
@@ -1228,7 +1237,7 @@
                     valA = parseFloat(valA);
                     valB = parseFloat(valB);
                     if (isNaN(valA)) valA = (dropsCurrentSortDirection === 'asc' ? Infinity : -Infinity);
-                    if (isNaN(valB)) valB = (dropsCurrentSortDirection === 'asc' ? Infinity : -Infinity);
+                    if (isNaN(valB)) valB = (pbsCurrentSortDirection === 'asc' ? Infinity : -Infinity);
                     return (valA - valB) * (dropsCurrentSortDirection === 'asc' ? 1 : -1);
                 } else if (type === 'date') {
                     valA = new Date(valA);
@@ -1563,7 +1572,7 @@
                 card.innerHTML = `
                     <h3 class="text-xl font-bold text-custom-blue-400 mb-2">${winner.bingoName}</h3>
                     <div class="flex-grow">
-                        <p class="text-lg font-semibold text-white mb-3">🥇 <span class="text-yellow-400">${winner.teamName}</span></p>
+                        <p class="text-lg font-semibold text-white mb-3">🏆<span class="text-yellow-400">${winner.teamName}</span></p>
                         <div>
                             <p class="font-medium text-gray-300">Participants:</p>
                             <p class="text-sm text-gray-400 wrap-text">${winner.participants}</p>
@@ -2099,7 +2108,7 @@
                             </select>
                         </div>
                     </div>
-                    <div id="bossImageContainer" class="mb-6 flex justify-center items-center bg-gray-900 rounded-lg overflow-hidden" style="height: 150px;">
+                    <div id="bossImageContainer" class="mb-6 flex justify-center items-center bg-gray-900 rounded-lg overflow-hidden" style="height: 250px;">
                         <p class="text-gray-500">Select a boss to view image</p>
                     </div>
                 </div>
