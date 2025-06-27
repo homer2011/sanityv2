@@ -832,7 +832,7 @@ class User(commands.Cog):
         embed = descriptionOnlyEmbed(f"changersn on {main_or_alt} from {prev_rsn} to {new_rsn}")
         await ctx.respond(embed=embed)
 
-    @bridge.bridge_command(guild_ids=testingservers, name="personalbests", description="See some pbs!")
+    """@bridge.bridge_command(guild_ids=testingservers, name="personalbests", description="See some pbs!")
     @has_any_role(*rank_ids)
     async def personalbests(self, ctx):
         """Shows all submitted times for a raid/scale"""
@@ -864,7 +864,7 @@ class User(commands.Cog):
             ))
 
         paginator = pages.Paginator(pages=page_groups, show_menu=True)
-        await paginator.respond(ctx, ephemeral=False)
+        await paginator.respond(ctx, ephemeral=False)"""
 
 
 
@@ -1074,7 +1074,7 @@ class User(commands.Cog):
             embed_string += f"**{x+1}.** {messageNote} - `{points[x]}` - {formattedTimeStamp} \n"
 
         embed = descriptionOnlyEmbed(embed_string,f"<:bluediamond:1179473465733029948> Past {len(data)} point events for {user.display_name}")
-        embed.add_field(name="\u200b", value=f"See all drops [Clan Spreadsheet](https://docs.google.com/spreadsheets/d/17Ll9FIWYRcGIeltJO_q4K47nNKLupbIyhgtagcmjIfY/edit?gid=1620187865#gid=1620187865)", inline=False)
+        embed.add_field(name="\u200b", value=f"See all drops [Clan Spreadsheet](https://sanityosrs.com/#drops)", inline=False)
 
         await ctx.respond(embed=embed)
 
@@ -1087,7 +1087,7 @@ class User(commands.Cog):
 
         embed, points, masterdiaryPoints = checkUserDiary(member.id)
 
-        embed.add_field(name="\u200b", value=f"See all diary times in [Clan Spreadsheet](https://docs.google.com/spreadsheets/d/17Ll9FIWYRcGIeltJO_q4K47nNKLupbIyhgtagcmjIfY/edit?gid=376062058#gid=376062058)", inline=False)
+        embed.add_field(name="\u200b", value=f"See all diary times in [Clan Spreadsheet](https://sanityosrs.com/#diary)", inline=False)
 
         await ctx.respond(embed=embed)
 

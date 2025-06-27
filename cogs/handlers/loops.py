@@ -497,6 +497,7 @@ async def elderRankGiver():
         relativeDif = relativedelta.relativedelta(now, joinDate)
         years = relativeDif.years
         elder_role_id = getRoleId("1YEAR")
+        new_elder_role_id = getRoleId("ELDER")
 
         if years > 0:
             member_disc = sanity.get_member(member[0])
@@ -508,6 +509,11 @@ async def elderRankGiver():
                     #print(f"added elder role to {member[0]}")
                     await member_disc.add_roles(new_role)
                     insert_audit_Logs(member_disc.id,8,datetime.datetime.now(),"Elder role assigned",member_disc.id)
+                if new_elder_role_id not in member_ranks:
+                    new_role = sanity.get_role(new_elder_role_id)
+                    #print(f"added elder role to {member[0]}")
+                    await member_disc.add_roles(new_role)
+                    insert_audit_Logs(member_disc.id,8,datetime.datetime.now(),"Elder role v2 assigned",member_disc.id)
 
 @elderRankGiver.before_loop  # REMOVES
 async def before():

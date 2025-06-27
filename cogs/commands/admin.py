@@ -458,16 +458,16 @@ class Admin(commands.Cog):
         #SHITS BROKEN MADAFAKA
         await ctx.respond(f"comp mode (bingo mode) has been set to {on_or_off}")
 
-    @discord.slash_command(guild_ids=testingservers, name="box", description="enable misc stuff")
+    """@discord.slash_command(guild_ids=testingservers, name="box", description="enable misc stuff")
     @has_any_role(*admin_roles_ids)
     async def box(self, ctx: discord.ApplicationContext,
                        on_or_off: discord.Option(int, description="1 = on, 0 = off", choices=[1, 0])):
-        """does somethig for box"""
+        #does somethig for box
 
         enableCompMode('aprilfools',on_or_off)
 
         # SHITS BROKEN MADAFAKA
-        await ctx.respond(f"comp mode (bingo mode) has been set to {on_or_off}")
+        await ctx.respond(f"comp mode (bingo mode) has been set to {on_or_off}")"""
 
     @discord.slash_command(guild_ids=testingservers, name="updatediarytime",
                            description="Admin - Update a diary time. If only easy time, put rest 0")
@@ -636,12 +636,11 @@ class Admin(commands.Cog):
             membersInVoice += f"<@{member.id}> "
         await ctx.send(f"{membersInVoice}")
 
-    @discord.slash_command(guild_ids=testingservers, name="texttorepeat",
+    """@discord.slash_command(guild_ids=testingservers, name="texttorepeat",
                            description="Admin - Repeat some text")
     @has_any_role(*admin_roles_ids)
     async def texttorepeat(self, ctx: discord.ApplicationContext, text : str):
-        """repeats ur msg"""
-        await ctx.send(f"{text}")
+        await ctx.send(f"{text}")"""
 
     @commands.command()
     @has_any_role(*admin_roles_ids)
@@ -732,17 +731,17 @@ class Admin(commands.Cog):
         except:
             await ctx.respond(f"Something fked up, bad rng", ephemeral=True)
 
-    """@bridge.bridge_command(guild_ids=testingservers, name="awardfix",
+    @bridge.bridge_command(guild_ids=testingservers, name="awardfix",
                            description="Admin - create embed for sanity awards")
     @has_any_role(*admin_roles_ids)
-    async def awardfix(self, ctx: discord.ApplicationContext):
+    async def awardfix(self, ctx: discord.ApplicationContext, title:str,description:str):
         embed = discord.Embed(
-            title=f"Sanity awards 2024 vote",
-            description=f"Vote for the the sanity awards 2024!!",
+            title=f"{title}",
+            description=f"{description}",
             color=discord.Color.blue()
         )
 
-        await ctx.send(embed=embed, view=awardsVoteButton())"""
+        await ctx.send(embed=embed, view=awardsVoteButton())
 
     @bridge.bridge_command(guild_ids=testingservers, name="create_vote",
                            description="Admin - create vote thingy like section for sanity awards")
@@ -931,7 +930,7 @@ class Admin(commands.Cog):
         await ctx.respond(f"{drop_name} minimum value has been updated to **{new_value}**")
         insert_audit_Logs(ctx.author.id, 7, datetime.datetime.now(), f"updated drop {drop_name} value to {new_value}", ctx.author.id)
 
-    @discord.slash_command(guild_ids=testingservers, name="updatesheet",
+    """@discord.slash_command(guild_ids=testingservers, name="updatesheet",
                            description="Admin - update the sheets!")
     @commands.cooldown(3,100,commands.BucketType.guild)
     @has_any_role(*admin_roles_ids)
@@ -975,10 +974,10 @@ class Admin(commands.Cog):
             except:
                 print(f"Sheet **{sheetname}** has been updated")
         else:
-            print(f"sheet did not update - api error!")
+            print(f"sheet did not update - api error!")"""
 
 
-    @bridge.bridge_command(guild_ids=testingservers, name="showtables",
+    """@bridge.bridge_command(guild_ids=testingservers, name="showtables",
                            description="Admin - Show data from database!")
     @has_any_role(*admin_roles_ids)
     async def showtables(self, ctx,
@@ -1007,7 +1006,7 @@ class Admin(commands.Cog):
         #print(pageinatorshit)
 
         paginator = pages.Paginator(pages=pageinatorshit)
-        await paginator.respond(ctx, ephemeral=False)
+        await paginator.respond(ctx, ephemeral=False)"""
 
         #await ctx.respond(str(data)[0:1999])
 
