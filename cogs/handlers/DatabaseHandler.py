@@ -24,13 +24,15 @@ else:
 
 # Access your API keys
 live_api_key = os.getenv("live_disc_api")
+#print(f"PRINT TEST {live_api_key}")
 test_api_key = os.getenv("test_disc_api")
 mysql_user = os.getenv("mysql_user")
 mysql_pw = os.getenv("mysql_pw")
 db_conection = os.getenv("db_connection_ip")
+api_key_wom = os.getenv("x-api-key")
 
 def STARTup(test):  # setting
-    if test == 2:  # if 2 = test
+    if test == 1:  # if 2 = test
         db_user = "admin"
         token = live_api_key
         testingservers = [305380209366925312, 301755382160818177] #sanity 301755382160818177

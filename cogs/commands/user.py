@@ -19,7 +19,7 @@ from ..handlers.DatabaseHandler import get_all_users, get_all_ranks, get_user_po
     getrsn, updatersn, getPointsBought, update_user_points_aprilfools, aprilFoolsCheck, \
     pageinatorGetPages, getPointsMonthly, getMemberAge, mycursor, getUserData, db, \
     turnListOfIds_into_names, get_user_points_april_fools, bingoModeCheck, get_all_active_users, fetchranksGracePeriod, \
-    get_channel
+    get_channel, api_key_wom
 from ..handlers.EmbedHandler import descriptionOnlyEmbed, embedVariable
 from ..handlers.VCTracker import getUserListofVcUsers
 from ..handlers.diaryHandler import checkUserDiary, maxDiaryPoints
@@ -38,19 +38,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 """
-current_dir = pathlib.Path(__file__).parent
-dotenv_path = current_dir / '..' / '..' / 'botsetup.env' # This assumes 'botsetup.env' is directly in 'your_project/'
-# Resolve to an absolute path for robustness
-dotenv_path = dotenv_path.resolve()
-
-if dotenv_path.exists():
-    load_dotenv(dotenv_path)
-    print(f"Loaded .env from: {dotenv_path}")
-else:
-    print(f"Warning: {dotenv_path} not found.")
-
-# Access your API keys
-apikey = os.getenv("x-api-key")
 
 def getNameFromUserId(userId):
     mycursor.execute(
@@ -835,7 +822,7 @@ class User(commands.Cog):
     """@bridge.bridge_command(guild_ids=testingservers, name="personalbests", description="See some pbs!")
     @has_any_role(*rank_ids)
     async def personalbests(self, ctx):
-        """Shows all submitted times for a raid/scale"""
+        #Shows all submitted times for a raid/scale
         #get relevant scales then send out top list for each
 
         relevant_bossScales = getRelevantBosses(25)
@@ -1074,7 +1061,7 @@ class User(commands.Cog):
             embed_string += f"**{x+1}.** {messageNote} - `{points[x]}` - {formattedTimeStamp} \n"
 
         embed = descriptionOnlyEmbed(embed_string,f"<:bluediamond:1179473465733029948> Past {len(data)} point events for {user.display_name}")
-        embed.add_field(name="\u200b", value=f"See all drops [Clan Spreadsheet](https://sanityosrs.com/#drops)", inline=False)
+        embed.add_field(name="\u200b", value=f"See all drops [Clan Website](https://sanityosrs.com/#drops)", inline=False)
 
         await ctx.respond(embed=embed)
 
@@ -1087,7 +1074,7 @@ class User(commands.Cog):
 
         embed, points, masterdiaryPoints = checkUserDiary(member.id)
 
-        embed.add_field(name="\u200b", value=f"See all diary times in [Clan Spreadsheet](https://sanityosrs.com/#diary)", inline=False)
+        embed.add_field(name="\u200b", value=f"See all diary times in [Clan Website](https://sanityosrs.com/#diary)", inline=False)
 
         await ctx.respond(embed=embed)
 

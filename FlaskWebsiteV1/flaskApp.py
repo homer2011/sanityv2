@@ -33,6 +33,258 @@ DB_CONFIG = {
     'database': 'sanity2'
 }
 
+
+@app.route('/api/rankChanges', methods=['GET'])
+def get_rank_changes():
+    """
+    Connects to the MySQL database, executes the user query,
+    and returns the data as JSON.
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True) # dictionary=True makes rows accessible by column name
+
+        query = """
+            SELECT
+                a.actionDate,
+                u.userid,
+                u.displayName,
+                r_before.name AS rank_before, -- Changed from r_before.rank_name
+                r_after.name AS rank_after,   -- Changed from r_after.rank_name
+                r_before.id as rankId_before,
+                r_after.id as rankId_after
+            FROM
+                sanity2.auditlogs a
+            JOIN
+                sanity2.users u ON u.userid = SUBSTRING_INDEX(SUBSTRING_INDEX(a.actionNote, ' ', 2), ' ', -1)
+            JOIN
+                sanity2.ranks r_before ON r_before.id = SUBSTRING_INDEX(SUBSTRING_INDEX(a.actionNote, ' from ', -1), ' to ', 1)
+            JOIN
+                sanity2.ranks r_after ON r_after.id = SUBSTRING_INDEX(a.actionNote, ' to ', -1)
+            WHERE
+                a.actionNote LIKE 'UPDATED % RANK from % to %' and 
+                r_before.name != 'quit' and 
+                r_before.name != 'retired' and 
+                r_after.name  != 'quit' and 
+                r_after.name  != 'retired'
+            order BY 
+                a.actionDate desc 
+        """
+        cursor.execute(query)
+        users_data = cursor.fetchall()
+        return jsonify(users_data)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
+
+@app.route('/api/miscroles', methods=['GET'])
+def get_miscroles():
+    """
+    Connects to the MySQL database, executes the user query,
+    and returns the data as JSON.
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True) # dictionary=True makes rows accessible by column name
+
+        query = """
+            select mr.roleName,u.displayName from sanity2.miscRoles mr 
+            left join sanity2.users u on u.userId = mr.userId 
+        """
+        cursor.execute(query)
+        users_data = cursor.fetchall()
+        return jsonify(users_data)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
+
+
+@app.route('/api/discordProfileUrl', methods=['GET'])
+def get_discord_profile_url():
+    """
+    Connects to the MySQL database, executes the user query,
+    and returns the data as JSON.
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True) # dictionary=True makes rows accessible by column name
+
+        query = """
+            SELECT
+                u.displayName , discordProfileImageUrl 
+            FROM 
+                sanity2.discordProfileImageUrl dpiu 
+            left join sanity2.users u on u.userId = dpiu.userId 
+        """
+        cursor.execute(query)
+        users_data = cursor.fetchall()
+        return jsonify(users_data)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
+
+
+@app.route('/api/getUserEhb', methods=['GET'])
+def get_user_ehb():
+    """
+    Connects to the MySQL database, executes the user query,
+    and returns the data as JSON.
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True) # dictionary=True makes rows accessible by column name
+
+        query = """
+            SELECT
+                u.displayName,
+                GROUP_CONCAT(DISTINCT s.displayName SEPARATOR ', ') AS associated_rsns,
+                SUM(s.ehbWeeklyEhb) AS total_weekly_ehb,
+                SUM(s.chambers_of_xericWeeklyEHB) as 'chambers_of_xericWeeklyEHB', 
+                SUM(s.chambers_of_xeric_challenge_modeWeeklyEHB) as 'chambers_of_xeric_challenge_modeWeeklyEHB',
+                sum(s.the_corrupted_gauntletWeeklyEHB) as 'the_corrupted_gauntletWeeklyEHB',
+                sum(s.sol_hereditWeeklyEHB) as 'sol_hereditWeeklyEHB',
+                sum(s.theatre_of_bloodWeeklyEHB) as 'theatre_of_bloodWeeklyEHB',
+                sum(s.theatre_of_blood_hard_modeWeeklyEHB) as 'theatre_of_blood_hard_modeWeeklyEHB',
+                sum(s.tzkal_zukWeeklyEHB) as 'tzkal_zukWeeklyEHB',
+                sum(s.tztok_jadWeeklyEHB) as 'tztok_jadWeeklyEHB'
+            FROM
+                sanity2.users u
+            JOIN
+                sanity2.userStats s ON s.displayName = u.mainrsn OR s.displayName = u.altrsn
+            GROUP BY
+                u.userId
+            order by sum(s.ehbWeeklyEhb) desc 
+        """
+        cursor.execute(query)
+        users_data = cursor.fetchall()
+        return jsonify(users_data)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
+
+
+@app.route('/api/discordmsgssentyearly', methods=['GET'])
+def get_yearly_discord_msgs():
+    """
+    Connects to the MySQL database, executes the user query,
+    and returns the data as JSON.
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True) # dictionary=True makes rows accessible by column name
+
+        query = """
+            select count(l.authorID) as 'messageCount',u.displayName from sanity2.loggedmsgs l 
+            inner join sanity2.users u on u.userId = l.authorID 
+            where l.datetimeMSG >= DATE_SUB(CURDATE(), INTERVAL 1 year) 
+            group by 2
+            order by count(l.authorID) desc 
+        """
+        cursor.execute(query)
+        users_data = cursor.fetchall()
+        return jsonify(users_data)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
+
+@app.route('/api/discordmsgssentmonthly', methods=['GET'])
+def get_monthly_discord_msgs():
+    """
+    Connects to the MySQL database, executes the user query,
+    and returns the data as JSON.
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True) # dictionary=True makes rows accessible by column name
+
+        query = """
+            select count(l.authorID) as 'messageCount',u.displayName from sanity2.loggedmsgs l 
+            inner join sanity2.users u on u.userId = l.authorID 
+            where l.datetimeMSG >= DATE_SUB(CURDATE(), INTERVAL 1 month) 
+            group by 2
+            order by count(l.authorID) desc 
+        """
+        cursor.execute(query)
+        users_data = cursor.fetchall()
+        return jsonify(users_data)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
+
+@app.route('/api/discordmsgssent', methods=['GET'])
+def get_weekly_discord_msgs():
+    """
+    Connects to the MySQL database, executes the user query,
+    and returns the data as JSON.
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True) # dictionary=True makes rows accessible by column name
+
+        query = """
+            select count(l.authorID) as 'messageCount',u.displayName from sanity2.loggedmsgs l 
+            inner join sanity2.users u on u.userId = l.authorID 
+            where l.datetimeMSG >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
+            group by 2
+            order by count(l.authorID) desc 
+        """
+        cursor.execute(query)
+        users_data = cursor.fetchall()
+        return jsonify(users_data)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
+
+
 @app.route('/api/users', methods=['GET'])
 def get_users_data():
     """
@@ -378,7 +630,7 @@ def get_drops_data():
             SELECT
                 s.Id,
                 submitter_u.displayName AS submitter,
-                GROUP_CONCAT(participant_u.displayName ORDER BY FIND_IN_SET(participant_u.userId, s.participants) SEPARATOR ', ') AS member_names,
+                GROUP_CONCAT(participant_u.displayName ORDER BY FIND_IN_SET(participant_u.userId, REPLACE(s.participants, '*', '')) SEPARATOR ', ') AS member_names,
                 s.notes,
                 s.value,
                 s2.name AS status_name,
@@ -388,13 +640,13 @@ def get_drops_data():
             FROM
                 sanity2.submissions s
             LEFT JOIN
-                sanity2.users submitter_u ON s.userId = submitter_u.userId
+                sanity2.users submitter_u ON REPLACE(s.userId, '*', '') = submitter_u.userId
             LEFT JOIN
-                sanity2.users participant_u ON FIND_IN_SET(participant_u.userId, s.participants) > 0
+                sanity2.users participant_u ON FIND_IN_SET(participant_u.userId, REPLACE(s.participants, '*', '')) > 0
             LEFT JOIN
-            	sanity2.users reviewer_u ON s.reviewedBy  = reviewer_u.userId
+                sanity2.users reviewer_u ON REPLACE(s.reviewedBy, '*', '') = reviewer_u.userId
             LEFT JOIN
-            	sanity2.submissionstatus s2 ON s.status = s2.id
+                sanity2.submissionstatus s2 ON s.status = s2.id
             WHERE s.status IN (2,3,1,4)
             GROUP BY
                 s.Id,
@@ -403,9 +655,10 @@ def get_drops_data():
                 s.value,
                 s.imageUrl,
                 s.reviewedDate,
-                s2.name
+                s2.name,
+                reviewer_u.displayName -- <--- ADDED THIS LINE
             ORDER BY
-            	Id DESC
+                Id DESC
         """
         cursor.execute(query)
         drops_data = cursor.fetchall()

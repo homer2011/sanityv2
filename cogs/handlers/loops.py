@@ -497,7 +497,7 @@ async def elderRankGiver():
         relativeDif = relativedelta.relativedelta(now, joinDate)
         years = relativeDif.years
         elder_role_id = getRoleId("1YEAR")
-        new_elder_role_id = getRoleId("ELDER")
+        #new_elder_role_id = getRoleId("ELDER")
 
         if years > 0:
             member_disc = sanity.get_member(member[0])
@@ -509,11 +509,11 @@ async def elderRankGiver():
                     #print(f"added elder role to {member[0]}")
                     await member_disc.add_roles(new_role)
                     insert_audit_Logs(member_disc.id,8,datetime.datetime.now(),"Elder role assigned",member_disc.id)
-                if new_elder_role_id not in member_ranks:
+                """if new_elder_role_id not in member_ranks:
                     new_role = sanity.get_role(new_elder_role_id)
                     #print(f"added elder role to {member[0]}")
                     await member_disc.add_roles(new_role)
-                    insert_audit_Logs(member_disc.id,8,datetime.datetime.now(),"Elder role v2 assigned",member_disc.id)
+                    insert_audit_Logs(member_disc.id,8,datetime.datetime.now(),"Elder role v2 assigned",member_disc.id)"""
 
 @elderRankGiver.before_loop  # REMOVES
 async def before():
@@ -713,6 +713,225 @@ async def before():
 checkIsInactiveList.start()
 
 
+@tasks.loop(time=[time(hour=5, minute=49)])
+async def updateUserStatsTable():
+    print("started UpdateUserStats tasks")
+
+    # --- API Configuration ---
+    BASE_URL = "https://api.wiseoldman.net/v2/groups/230/gained"
+    # 2. Get all existing display names and column names from the userStats table
+    mycursor.execute("SELECT displayName FROM sanity2.userStats")
+    db_players = {row[0] for row in mycursor.fetchall()}
+    print(f"Found {len(db_players)} unique players in the database.")
+
+    mycursor.execute("SHOW COLUMNS FROM sanity2.userStats")
+    all_columns = [column[0] for column in mycursor.fetchall()]
+    print(f"Found columns: {all_columns}")
+
+    # This map helps convert parts of a column name to an API period
+    periods_map = {"Weekly": "week"}  # Only processing weekly as per previous request
+
+    # 3. Iterate through columns, parse them, fetch data, and update DB
+    for column_name in all_columns:
+        metric = None
+        period = None
+
+        # Attempt to parse the column name to find a period and metric
+        for period_str, api_period in periods_map.items():
+            if period_str in column_name:
+                try:
+                    # --- FIX: Parse the metric from the beginning of the column name ---
+                    # Assumes format like {metric}Weekly... e.g., ehbWeeklyEhb or chambers_of_xericWeeklyEhb
+                    metric_part = column_name.split(period_str)[0]
+                    if metric_part:
+                        # The metric for the API call is the part before the period string
+                        metric = metric_part.lower()
+                        period = api_period
+                        break  # Found a match, stop searching this column name
+                except IndexError:
+                    continue
+
+        if not metric or not period:
+            print(f"\n--- Skipping column '{column_name}' (does not match naming convention) ---")
+            continue
+
+        print(f"\n--- Processing: {column_name} (Metric: {metric}, Period: {period}) ---")
+
+        # 3a. Fetch data from the Wise Old Man API
+        api_params = {"metric": metric, "period": period, "limit": 400}
+        api_data = None
+        try:
+            response = requests.get(BASE_URL, params=api_params)
+            response.raise_for_status()
+            api_data = response.json()
+            print(f"Successfully fetched data from API for metric '{metric}'.")
+
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 400 and e.response.json().get("message") == "Invalid enum value for 'metric'.":
+                print(f"Ignoring column '{column_name}': Invalid metric '{metric}' for WOM API.")
+                continue
+            print(f"HTTP Error fetching data for metric '{metric}': {e}")
+            continue
+        except requests.exceptions.RequestException as e:
+            print(f"A network error occurred: {e}")
+            continue
+
+        if api_data is None:  # Use is None to handle empty list case
+            print(f"No data received from API for {column_name}. Skipping update.")
+            continue
+
+        # 3b. Update active players and zero out inactive players
+
+        # Prepare data for active players
+        values_to_update = []
+        for player in api_data:
+            display_name = player.get('player', {}).get('displayName')
+            gained_value = player.get('data', {}).get('gained', 0)
+            if display_name:
+                values_to_update.append((display_name, gained_value))
+
+        # Update the active players from the API data
+        if values_to_update:
+            sql_update_active = f"""
+                        INSERT INTO sanity2.userStats (displayName, `{column_name}`)
+                        VALUES (%s, %s)
+                        ON DUPLICATE KEY UPDATE `{column_name}` = VALUES(`{column_name}`);
+                    """
+            mycursor.executemany(sql_update_active, values_to_update)
+            db.commit()
+            print(f"Successfully updated/inserted {mycursor.rowcount} active records for column '{column_name}'.")
+        else:
+            print(f"No active player data to update for column '{column_name}'.")
+
+        # Find players in the DB who are NOT in the API response and set their value to 0
+        api_player_names = {item[0] for item in values_to_update}
+        inactive_players = db_players - api_player_names
+
+        if inactive_players:
+            print(f"Found {len(inactive_players)} inactive players to zero out for '{column_name}'.")
+            sql_zero_out_inactive = f"UPDATE sanity2.userStats SET `{column_name}` = 0 WHERE displayName = %s"
+            inactive_players_tuples = [(name,) for name in inactive_players]
+            mycursor.executemany(sql_zero_out_inactive, inactive_players_tuples)
+            db.commit()
+            print(f"Successfully zeroed out {mycursor.rowcount} inactive records for column '{column_name}'.")
+    print("finished updating userStats table")
+
+@updateUserStatsTable.before_loop  # REMOVES
+async def before():
+    await bot.wait_until_ready()
+updateUserStatsTable.start()
+
+
+def updateMiscRoleId(rolename:str, userId:int):
+    mycursor.execute(
+        f"update sanity2.miscRoles set userId = {userId} where roleName = '{rolename}'"
+    )
+    db.commit()
+
+### get discordProfileUrl
+@tasks.loop(time=[time(hour=6,minute=14)])
+async def getMiscRoles():
+    print("started getting discord misc")
+    sanity_guild_id = 301755382160818177
+    leaderRoleId = 301755450536361984
+    motmRoleId = 360727972543594497
+    motyRoleId = 1054807254668423240
+    #officialsRoleId = 456561385896280085
+
+    # 1. Get the guild and role objects
+    sanity_guild = bot.get_guild(sanity_guild_id)
+    if not sanity_guild:
+        print(f"Error: Bot could not find guild with ID {sanity_guild_id}.")
+        return
+
+    leaderRole = sanity_guild.get_role(leaderRoleId)
+    motmRoleId = sanity_guild.get_role(motmRoleId)
+    motyRoleId = sanity_guild.get_role(motyRoleId)
+
+    for member in leaderRole.members:
+        updateMiscRoleId("leader",member.id)
+
+    for member in motmRoleId.members:
+        updateMiscRoleId("motm", member.id)
+
+    for member in motyRoleId.members:
+        updateMiscRoleId("moty",member.id)
+@getMiscRoles.before_loop  # REMOVES
+async def before():
+    await bot.wait_until_ready()
+getMiscRoles.start()
+
+### get discordProfileUrl
+@tasks.loop(time=[time(hour=6,minute=4)])
+async def getDiscordImageUrl():
+    print("started getting discord image url")
+    sanity_guild_id = 301755382160818177
+    sanity_role_id = 1240423750394970193
+    users_table = "users"
+    profile_url_table = "discordProfileImageUrl"
+
+    # --- Logic ---
+    try:
+        # 1. Get the guild and role objects
+        sanity_guild = bot.get_guild(sanity_guild_id)
+        if not sanity_guild:
+            print(f"Error: Bot could not find guild with ID {sanity_guild_id}.")
+            return
+
+        sanity_role = sanity_guild.get_role(sanity_role_id)
+        if not sanity_role:
+            print(f"Error: Could not find role with ID {sanity_role_id} in the guild.")
+            return
+
+        # 2. --- NEW: Fetch all existing user IDs from the parent 'users' table ---
+        mycursor.execute(f"SELECT userId FROM sanity2.{users_table}")
+        # Store IDs in a set for very fast lookups
+        existing_user_ids = {row[0] for row in mycursor.fetchall()}
+        print(f"Found {len(existing_user_ids)} users in the '{users_table}' table to check against.")
+
+        # 3. Get members with the role
+        members_with_role = sanity_role.members
+        if not members_with_role:
+            print("No members found with the specified role.")
+            return
+
+        # 4. Prepare profile picture data, skipping members who are not in the users table
+        profile_url_data_to_update = []
+        skipped_count = 0
+        for member in members_with_role:
+            # Check if the member's ID exists in our set of users
+            if member.id in existing_user_ids:
+                profile_url_data_to_update.append((member.id, member.display_avatar.url))
+            else:
+                # If not, skip them and print a notice
+                print(f"Skipping {member.display_name} (ID: {member.id}) - not found in '{users_table}'.")
+                skipped_count += 1
+
+        print(f"Prepared to update {len(profile_url_data_to_update)} members. Skipped {skipped_count} members.")
+
+        # 5. Execute the database query if there is data to update
+        if profile_url_data_to_update:
+            sql_update_urls = f"""
+                    INSERT INTO sanity2.{profile_url_table} (userId, discordProfileImageUrl)
+                    VALUES (%s, %s)
+                    ON DUPLICATE KEY UPDATE discordProfileImageUrl = VALUES(discordProfileImageUrl)
+                """
+            mycursor.executemany(sql_update_urls, profile_url_data_to_update)
+
+            # 6. Commit the changes to the database
+            db.commit()
+
+            print(f"✅ Database updated successfully. {mycursor.rowcount} rows were affected in '{profile_url_table}'.")
+
+    except Exception as e:
+        print(f"❌ An error occurred: {e}")
+        db.rollback()
+
+@getDiscordImageUrl.before_loop  # REMOVES
+async def before():
+    await bot.wait_until_ready()
+getDiscordImageUrl.start()
+
 #### members ready for rankup!
 @tasks.loop(time=[time(hour=18, minute=1)]) #
 async def checkRankUps():
@@ -864,6 +1083,7 @@ async def before():
 checkRankUps.start()
 
 
+
 @tasks.loop(time=[time(hour=18, minute=5)])
 async def nitroPoints():
     # check if day = first of month
@@ -972,7 +1192,7 @@ class rankChangerView(View):  # for council / drop acceptors etc in #posted-drop
             if rankId != new_role.id and rankId in member_roles:
                 await member.remove_roles(role)
 
-        insert_audit_Logs(interaction.user.id, 5, now, f"{member.display_name} updated rankid from {previousRankId} to {newRankId}",member.id)
+        insert_audit_Logs(interaction.user.id, 5, now, f"updated {member.id} RANK from {previousRankId} to {newRankId}",member.id)
         updateUserRank(member.id,newRankId)
 
         await interaction.message.edit(embed=embed,view=None)

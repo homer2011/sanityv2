@@ -15,6 +15,9 @@
     <!-- NProgress for Loading Bar -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
     <style>
         body {
@@ -113,35 +116,120 @@
 </head>
 <body class="min-h-screen flex flex-col">
     <header class="bg-custom-blue-800 text-white shadow-lg">
-        <nav class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-center items-center">
-            <div class="text-2xl font-bold mb-4 md:mb-0 md:mr-8"><a href="#home" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('home')">Sanity</a></div>
-            <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-8 text-lg font-medium items-center">
-                <li><a href="#diary" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('diary')">Diary Times</a></li>
-                <li><a href="#users" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('users')">Users</a></li>
-                <li><a href="#personalbests" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('personalbests')">Posted Pbs</a></li>
-                <li><a href="#drops" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('drops')">Posted Drops</a></li>
-                <li><a href="#points" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('points')">Points</a></li>
-                <li class="relative group flex items-center">
-                    <span>Other</span>
-                    <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    <ul class="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-300 bg-custom-blue-700 text-white py-2 rounded-md shadow-lg w-48 min-w-max top-full left-0 z-10">
-                        <li><a href="#approved-stats" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('approved-stats')">Approved Stats</a></li>
-                        <li><a href="#userprofile" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('userprofile')">User Profile</a></li>
-                        <li><a href="#halloffame" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('halloffame')">Hall of Fame</a></li>
-                        <li><a href="#pbhiscores" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('pbhiscores')">PB Hiscores</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </nav>
-    </header>
+    <nav class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-center items-center">
+        <div class="text-2xl font-bold mb-4 md:mb-0 md:mr-8"><a href="#home" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('home')">Sanity</a></div>
+        <ul class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-8 text-lg font-medium items-center">
+            <li><a href="#ranks" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('ranks')">Ranks</a></li>
+            <li><a href="#diary" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('diary')">Diary Times</a></li>
+            <li><a href="#users" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('users')">Users</a></li>
+            <li><a href="#personalbests" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('personalbests')">Posted Pbs</a></li>
+            <li><a href="#drops" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('drops')">Posted Drops</a></li>
+            <li><a href="#points" class="hover:text-custom-blue-300 transition-colors duration-200" onclick="showPage('points')">Points</a></li>
+            <li class="relative group flex items-center">
+                <span>Other</span>
+                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                <ul class="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-300 bg-custom-blue-700 text-white py-2 rounded-md shadow-lg w-48 min-w-max top-full left-0 z-10">
+                    <li><a href="#approved-stats" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('approved-stats')">Approved Stats</a></li>
+                    <li><a href="#userprofile" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('userprofile')">User Profile</a></li>
+                    <li><a href="#halloffame" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('halloffame')">Hall of Fame</a></li>
+                    <li><a href="#pbhiscores" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('pbhiscores')">PB Hiscores</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</header>
 
     <main class="flex-grow container mx-auto px-4 py-8">
         <!-- Home Page Content -->
-        <section id="home-page" class="page-content bg-custom-blue-900">
-            <div class="text-center mb-8">
-                <img src="https://i.imgur.com/yrepXwU.png" alt="Sanity Clan Banner" class="mx-auto rounded-lg shadow-lg">
+        <section id="home-page" class="page-content">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 space-y-6">
+            <div class="bg-gray-800 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
+                <img src="https://i.imgur.com/yrepXwU.png" alt="Sanity Clan Banner" class="w-full h-full object-cover">
             </div>
 
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Recent Activity</h2>
+                <div id="recentActivity" class="space-y-4 max-h-96 overflow-y-auto pr-2 table-container">
+                    <p class="text-center text-gray-400">Loading Activity...</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Weekly Clan Point Gains</h2>
+                <div class="relative h-72">
+                    <canvas id="clanPointsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Top Performers</h2>
+                 <div id="topBossContainer">
+                    <p class="text-center text-gray-400">Loading PBs...</p>
+                 </div>
+            </div>
+        </div>
+
+               <div class="lg:col-span-1 space-y-6">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="randomCouncil" class="bg-gray-800 p-4 rounded-lg shadow-md">
+                    <p class="text-center text-gray-400">Loading Council...</p>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg shadow-md">
+                    <h2 class="text-lg font-bold text-custom-blue-400 mb-2 text-center">Member of the Month</h2>
+                    <div id="motm" class="text-center">
+                        <p class="text-gray-400">Loading MOTM...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Latest Bingo Winners</h2>
+                <div id="latestBingoWinner">
+                    <p class="text-center text-gray-400">Loading Winner...</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Recent Rank Changes</h2>
+                <ul id="recentRankChanges" class="space-y-4 max-h-60 overflow-y-auto pr-2 table-container">
+                    <p class="text-center text-gray-400">Loading Changes...</p>
+                </ul>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Top Points (3 Months)</h2>
+                <ul id="topPoints" class="space-y-3">
+                     <p class="text-center text-gray-400">Loading Points...</p>
+                </ul>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-custom-blue-400">Discord Activity</h2>
+                    <select id="discordActivityFilter" class="bg-gray-700 text-white text-sm rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-custom-blue-500">
+                        <option value="weekly">Past 7 Days</option>
+                        <option value="monthly">Past Month</option>
+                        <option value="yearly">Past Year</option>
+                    </select>
+                </div>
+                <ul id="discordActivity" class="space-y-3 max-h-80 overflow-y-auto pr-2 table-container">
+                    <p class="text-center text-gray-400">Loading Activity...</p>
+                </ul>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Newest Members</h2>
+                <ul id="newestMembers" class="space-y-3">
+                    <p class="text-center text-gray-400">Loading Members...</p>
+                </ul>
+            </div>
+        </div>
+        </section>
+
+        <!-- ranks - page content -->
+        <section id="ranks-page" class="page-content bg-custom-blue-900 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Ranks Table -->
                 <div class="bg-gray-800 p-6 rounded-lg shadow-md">
@@ -593,15 +681,18 @@
                             </p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-gray-200">
                         <p><strong>Overall Points:</strong> <span id="userOverallPoints"></span></p>
                         <p><strong>Main RSN:</strong> <span id="userMainRsn"></span></p>
-                        <p><strong>Alt RSN:</strong> <span id="userAltRsn"></span></p>
                         <p><strong>Join Date:</strong> <span id="userJoinDate"></span></p>
-                        <p><strong>Diary Points:</strong> <span id="userDiaryPoints"></span></p>
-                        <p><strong>Master Diaries:</strong> <span id="userMasterDiaryPoints"></span></p>
-                        <p><strong>Points (Past 3 Months):</strong> <span id="userPoints3Months"></span></p>
                         <p><strong>Diary Tier Claimed:</strong> <span id="userFlavourText"></span></p>
+                        <p><strong>Diary Points:</strong> <span id="userDiaryPoints"></span></p>
+                        <p><strong>Alt RSN:</strong> <span id="userAltRsn"></span></p>
+                        <p><strong>Points (Past 3 Months):</strong> <span id="userPoints3Months"></span></p>
+                        <p><strong>Weekly EHB:</strong> <span id="userWeeklyEhb">N/A</span></p>
+                        <p><strong>Master Diaries:</strong> <span id="userMasterDiaryPoints"></span></p>
+                        <p class="lg:col-span-3"><strong>Top Weekly Boss:</strong> <span id="userTopEhbSource">N/A</span></p>
+
                     </div>
                      <button id="shareProfileButton" class="mt-6 px-6 py-3 bg-custom-blue-500 text-white font-bold rounded-md hover:bg-custom-blue-600 transition-colors duration-200 shadow-lg">
                         Copy Profile Link
@@ -609,19 +700,28 @@
                     <div id="copyFeedback" class="mt-2 text-sm text-green-400 hidden"></div>
                 </div>
 
-                <!-- Overall Progress/Statistics -->
-                <div id="overallStatsSection" class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 hidden">
-                    <div class="bg-gray-700 p-6 rounded-lg shadow-md">
-                        <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Points Trend</h2>
-                        <div class="relative h-64">
-                            <canvas id="pointsTrendChart"></canvas>
-                        </div>
+                <!-- Points Trend Chart -->
+                <div id="pointsTrendSection" class="mt-8 bg-gray-700 p-6 rounded-lg shadow-md hidden">
+                    <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Points Trend</h2>
+                    <div class="relative h-96">
+                        <canvas id="pointsTrendChart"></canvas>
                     </div>
-                    <div class="bg-gray-700 p-6 rounded-lg shadow-md">
-                        <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Submission Statistics</h2>
-                        <div class="text-gray-200 text-lg space-y-2">
-                            <p><strong>Total Drops Submitted:</strong> <span id="totalDropsSubmitted">0</span></p>
-                            <p><strong>Total Personal Bests Submitted:</strong> <span id="totalPbsSubmitted">0</span></p>
+                </div>
+
+                <!-- Overall Progress/Statistics -->
+                <div id="submissionStatsSection" class="bg-gray-700 p-6 rounded-lg shadow-md hidden">
+                    <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Submissions & Rank Changes</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-gray-200 text-lg space-y-2">
+                                <p>Total Drops Submitted: <span id="totalDropsSubmitted">0</span></p>
+                                <p>Total Personal Bests Submitted: <span id="totalPbsSubmitted">0</span></p>
+                            </div>
+                        </div>
+                        <div>
+                            <ul id="rankChangesList" class="space-y-2 text-gray-300 overflow-y-auto pr-2">
+                                <li>No recent changes.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -634,7 +734,7 @@
                         <table class="min-w-full divide-y divide-gray-700 bg-gray-900 text-gray-200">
                             <thead class="bg-gray-700">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Participants</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Note</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Value</th>
@@ -726,12 +826,25 @@
         let filteredAndSortedPoints = [];
         let allPointsDataForGraph = [];
         let allDiaryTimesData = [];
-
         let pointsTrendChartInstance = null;
         let currentPbView = 'recent';
 
+        // --- Add these to your Global Data and API URLs section ---
+        let allRankChangesData = [];
+        let allDiscordProfilesData = [];
+        let allUserEhbData = [];
+        let allDiscordActivityData = [];
+        let allDiscordActivityMonthlyData = []; // ADD THIS LINE
+        let allDiscordActivityYearlyData = []; // ADD THIS LINE
+        let clanPointsChartInstance = null;
+        let allBingoWinnersData = []; // ADD THIS LINE
+        let isDataLoaded = false; // ADD THIS LINE
+        let allMiscRolesData = []; // ADD THIS LINE
 
+
+        // --- CORRECTED ORDER FOR API URLs ---
         const API_BASE = 'https://sanityosrs.com/api';
+        const MISCROLES_API_URL = `${API_BASE}/miscroles`; // 👈 ADD THIS LINE
         const USERS_API_URL = `${API_BASE}/users`;
         const PERSONALBESTS_API_URL = `${API_BASE}/personalbests`;
         const DROPS_API_URL = `${API_BASE}/drops`;
@@ -741,6 +854,13 @@
         const BINGOWINNERS_API_URL = `${API_BASE}/bingowinners`;
         const DIARYTIMES_API_URL = `${API_BASE}/diarytimes`;
 
+        // --- Add these new URLs to your consts section ---
+        const RANKCHANGES_API_URL = `${API_BASE}/rankChanges`;
+        const DISCORDPROFILEURL_API_URL = `${API_BASE}/discordProfileUrl`;
+        const GETUSEREHB_API_URL = `${API_BASE}/getUserEhb`;
+        const DISCORDMSGSSENT_API_URL = `${API_BASE}/discordmsgssent`;
+        const DISCORDMSGSSENT_MONTHLY_API_URL = `${API_BASE}/discordmsgssentmonthly`; // ADD THIS LINE
+        const DISCORDMSGSSENT_YEARLY_API_URL = `${API_BASE}/discordmsgssentyearly`;   // ADD THIS LINE
 
         // --- Sorting State for Users Table ---
         let usersCurrentSortColumn = null;
@@ -777,6 +897,19 @@
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
             const year = dateObj.getFullYear();
             return `${day}.${month}.${year}`;
+        }
+
+        function formatToPrettyDate(dateString) {
+            if (!dateString) return 'N/A';
+            const dateObj = new Date(dateString);
+            if (isNaN(dateObj.getTime())) return 'N/A';
+
+            const options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            };
+            return dateObj.toLocaleDateString('en-US', options);
         }
 
         // --- Utility Functions for Time Formatting and Parsing ---
@@ -867,15 +1000,30 @@
 
         // --- Data Preloading Function ---
         async function preloadAllData() {
+            if (isDataLoaded) return;
             console.log("Preloading all data...");
-            NProgress.start(); // Start loading bar for the whole preload process
+            NProgress.start();
             try {
-                const [usersRes, dropsRes, pbsRes, pointsRes, diaryTimesRes] = await Promise.all([
+                // THE FIX IS HERE: Added discordActivityMonthlyRes and discordActivityYearlyRes to the list
+                const [
+                    usersRes, dropsRes, pbsRes, pointsRes, diaryTimesRes,
+                    rankChangesRes, discordProfilesRes, userEhbRes,
+                    discordActivityRes, discordActivityMonthlyRes, discordActivityYearlyRes,
+                    bingoRes, miscRolesRes
+                ] = await Promise.all([
                     fetch(USERS_API_URL),
                     fetch(DROPS_API_URL),
                     fetch(PERSONALBESTS_API_URL),
                     fetch(POINTS_API_URL),
-                    fetch(DIARYTIMES_API_URL)
+                    fetch(DIARYTIMES_API_URL),
+                    fetch(RANKCHANGES_API_URL),
+                    fetch(DISCORDPROFILEURL_API_URL),
+                    fetch(GETUSEREHB_API_URL),
+                    fetch(DISCORDMSGSSENT_API_URL),
+                    fetch(DISCORDMSGSSENT_MONTHLY_API_URL),
+                    fetch(DISCORDMSGSSENT_YEARLY_API_URL),
+                    fetch(BINGOWINNERS_API_URL),
+                    fetch(MISCROLES_API_URL)
                 ]);
 
                 allUsersData = await usersRes.json();
@@ -883,20 +1031,27 @@
                 allPersonalBestsData = await pbsRes.json();
                 allPointsData = await pointsRes.json();
                 allDiaryTimesData = await diaryTimesRes.json();
+                allRankChangesData = await rankChangesRes.json();
+                allDiscordProfilesData = await discordProfilesRes.json();
+                allUserEhbData = await userEhbRes.json();
+                allDiscordActivityData = await discordActivityRes.json();
+                allDiscordActivityMonthlyData = await discordActivityMonthlyRes.json();
+                allDiscordActivityYearlyData = await discordActivityYearlyRes.json();
+                allBingoWinnersData = await bingoRes.json();
+                allMiscRolesData = await miscRolesRes.json();
 
-                allPointsDataForGraph = allPointsData;
-
+                isDataLoaded = true;
                 console.log("All data preloaded successfully.");
+
             } catch (error) {
                 console.error("Failed to preload data:", error);
             } finally {
-                NProgress.done(); // Finish loading bar
+                NProgress.done();
             }
         }
 
-
         // --- User Table Functions ---
-        function fetchUsersData() {
+        async function fetchUsersData() {
             applyUsersFiltersAndSort();
         }
 
@@ -1031,7 +1186,7 @@
 
 
         // --- Personal Bests Table Functions ---
-        function fetchPersonalBestsData() {
+        async function fetchPersonalBestsData() {
             applyPersonalBestsFiltersAndSort();
         }
 
@@ -1202,7 +1357,7 @@
         }
 
         // --- Drops Table Functions ---
-        function fetchDropsData() {
+        async function fetchDropsData() {
             applyDropsFiltersAndSort();
         }
 
@@ -1389,7 +1544,7 @@
         }
 
         // --- Points Table Functions ---
-        function fetchPointsData() {
+        async function fetchPointsData() {
             applyPointsFiltersAndSort();
         }
 
@@ -1656,9 +1811,6 @@
         // --- User Profile Page Functions ---
         async function fetchUsersForDropdown() {
             NProgress.start();
-            if (allUsersData.length === 0) {
-                await preloadAllData();
-            }
             const userSelect = document.getElementById('userSelect');
             userSelect.innerHTML = '<option value="">-- Select a User --</option>';
             const sortedUsers = [...allUsersData].sort((a, b) => {
@@ -1692,27 +1844,160 @@
             NProgress.done();
         }
 
-        async function handleUserSelection() {
+         async function handleUserSelection() {
             const userSelect = document.getElementById('userSelect');
             const selectedDisplayName = userSelect.value;
 
+            // Get all the page sections using their IDs
             const userDetailsSummary = document.getElementById('userDetailsSummary');
-            const overallStatsSection = document.getElementById('overallStatsSection');
+            const submissionStatsSection = document.getElementById('submissionStatsSection'); // Using the new ID
             const recentDropsSection = document.getElementById('recentDropsSection');
             const personalBestsProfileSection = document.getElementById('personalBestsProfileSection');
+            const pointsTrendSection = document.getElementById('pointsTrendSection');
 
+            // --- Inner function to render the user profile details ---
+            // REPLACE your existing renderUserProfileDetails function with this one
+
+        // REPLACE your existing renderUserProfileDetails function with this one
+        function renderUserProfileDetails(user) {
+            // --- START DEBUGGING ---
+            //console.log("--- Debugging User Profile ---");
+            //console.log("1. The selected user's object:", user);
+            // We now log the displayName, which we use for matching.
+            //console.log("2. The displayName we are trying to find:", user.displayName);
+
+            // FIX: The .find() now correctly compares the two displayNames.
+            const discordProfile = allDiscordProfilesData.find(p => p.displayName === user.displayName);
+
+            // FIX: The EHB data must also be matched by a common field. Since it has `userId`
+            // and the user object does not, this lookup is not possible. We will disable it for now.
+            // const userEhb = allUserEhbData.find(e => e.userId === user.someId); // This needs a proper common ID.
+            // AFTER (This finds the EHB record by checking if the user's name is in the list of associated RSNs)
+            const userEhb = allUserEhbData.find(e => e.associated_rsns && e.associated_rsns.includes(user.displayName));
+
+            //console.log("3. The entire allDiscordProfilesData array:", allDiscordProfilesData);
+            //console.log("4. The result of the .find() operation:", discordProfile);
+            //console.log("--- End Debugging ---");
+            // --- END DEBUGGING ---
+
+
+            document.getElementById('userNameDisplay').textContent = user.displayName || 'N/A';
+            // This line will now work correctly with the new `discordProfile` variable
+            document.getElementById('userAvatar').src = discordProfile ? discordProfile.discordProfileImageUrl : `https://placehold.co/80x80/2a608d/ffffff?text=${user.displayName ? user.displayName.charAt(0) : 'U'}`;
+            document.getElementById('userOverallPoints').textContent = user.points ? parseInt(user.points).toLocaleString('de-DE') : '0';
+
+            const rankName = user.rank_name || 'N/A';
+            document.getElementById('userRankName').textContent = rankName;
+            const rankIconPath = rankName !== 'N/A' ? `/icons/${rankName.toLowerCase().replace(/\s/g, '-')}.webp` : '';
+            document.getElementById('userRankIcon').src = rankIconPath;
+
+            document.getElementById('userMainRsn').textContent = user.mainRSN || 'N/A';
+            document.getElementById('userAltRsn').textContent = user.altRSN || 'N/A';
+            document.getElementById('userJoinDate').textContent = formatToDDMMYYYY(user.joinDate);
+            document.getElementById('userDiaryPoints').textContent = user.diaryPoints || '0';
+            document.getElementById('userMasterDiaryPoints').textContent = user.masterDiaryPoints || '0';
+            document.getElementById('userPoints3Months').textContent = user.points_past_3_months ? parseInt(user.points_past_3_months).toLocaleString('de-DE') : '0';
+            document.getElementById('userFlavourText').textContent = user.flavourText || 'N/A';
+
+            renderUserEhb(userEhb); // Will show N/A for now
+            renderUserRankChanges(user.displayName);
+        }
+
+
+            function renderPointsTrendGraph(chartData) {
+                const ctx = document.getElementById('pointsTrendChart').getContext('2d');
+
+                // 1. Check if a chart instance already exists on the global variable
+                if (pointsTrendChartInstance) {
+                    // 2. If it exists, destroy it
+                    pointsTrendChartInstance.destroy();
+                }
+
+                // 3. Now that the canvas is free, create the new chart instance
+                pointsTrendChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [{
+                            label: 'Cumulative Points',
+                            data: chartData.data,
+                            borderColor: 'rgb(51, 184, 230)',
+                            backgroundColor: 'rgba(51, 184, 230, 0.2)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { type: 'time', time: { unit: 'month' }, ticks: { color: '#a0aec0' }, grid: { color: '#4a5568' } },
+                            y: { ticks: { color: '#a0aec0', callback: value => parseInt(value).toLocaleString('de-DE') }, grid: { color: '#4a5568' } }
+                        },
+                        plugins: {
+                            legend: { labels: { color: '#e2e8f0' } },
+                            tooltip: { callbacks: { label: context => `Points: ${parseInt(context.raw).toLocaleString('de-DE')}` } },
+                            annotation: { annotations: chartData.annotations }
+                        }
+                    }
+                });
+            }
 
             if (selectedDisplayName) {
                 NProgress.start();
-                userDetailsSummary.classList.remove('hidden');
-                overallStatsSection.classList.remove('hidden');
-                recentDropsSection.classList.remove('hidden');
-                personalBestsProfileSection.classList.remove('hidden');
+                // Show all sections
+                [userDetailsSummary, submissionStatsSection, recentDropsSection, personalBestsProfileSection, pointsTrendSection].forEach(el => {
+                    if (el) el.classList.remove('hidden');
+                });
 
                 const selectedUser = allUsersData.find(user => user.displayName === selectedDisplayName);
                 if (selectedUser) {
                     renderUserProfileDetails(selectedUser);
-                    await fetchUserPointsTrend(selectedUser);
+
+                    // --- Logic for points trend graph ---
+                    const userPointsHistory = allPointsData.filter(point => point.displayName === selectedDisplayName).sort((a, b) => new Date(a.date) - new Date(b.date));
+                    // AFTER (Labels are staggered to prevent overlap)
+                    const userRankChanges = allRankChangesData
+                        .filter(r => r.displayName === selectedDisplayName)
+                        .sort((a, b) => new Date(a.actionDate) - new Date(b.actionDate)); // 1. Sort by date first
+
+                    const annotations = userRankChanges.map((change, index) => {
+                        // 2. Alternate position based on the index (even/odd)
+                        const isEven = index % 2 === 0;
+                        const yAdjust = isEven ? -210 : 20; // Move even labels up, odd labels down
+                        const labelPosition = isEven ? 'end' : 'start'; // Adjust text anchor accordingly
+
+                        return {
+                            type: 'line',
+                            scaleID: 'x',
+                            value: new Date(change.actionDate).getTime(),
+                            borderColor: 'rgba(255, 99, 132, 0.5)',
+                            borderWidth: 2,
+                            borderDash: [6, 6],
+                            label: {
+                                content: `${change.rank_before} -> ${change.rank_after}`,
+                                display: true,
+                                position: labelPosition, // 3. Use the dynamic position
+                                yAdjust: yAdjust,        // 4. Apply the vertical adjustment
+                                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                                font: { size: 10 }
+                            }
+                        };
+                    });
+
+                    const labels = [];
+                    const data = [];
+                    let cumulativePoints = (parseInt(selectedUser.points, 10) || 0) - userPointsHistory.reduce((sum, p) => sum + (p.points || 0), 0);
+
+                    userPointsHistory.forEach(point => {
+                        labels.push(new Date(point.date).getTime());
+                        cumulativePoints += (point.points || 0);
+                        data.push(cumulativePoints);
+                    });
+                    renderPointsTrendGraph({ labels, data, annotations });
+                    // --- End of graph logic ---
+
                     updateTotalStats(selectedDisplayName);
                     setupShareProfileButton(selectedDisplayName);
                 }
@@ -1727,30 +2012,10 @@
                 NProgress.done();
 
             } else {
-                userDetailsSummary.classList.add('hidden');
-                overallStatsSection.classList.add('hidden');
-                recentDropsSection.classList.add('hidden');
-                personalBestsProfileSection.classList.add('hidden');
-                document.getElementById('userNameDisplay').textContent = '';
-                document.getElementById('userAvatar').src = `https://placehold.co/80x80/2a608d/ffffff?text=User`;
-                document.getElementById('userRankIcon').src = '';
-                document.getElementById('userRankName').textContent = '';
-
-                document.getElementById('userMainRsn').textContent = '';
-                document.getElementById('userAltRsn').textContent = '';
-                document.getElementById('userJoinDate').textContent = '';
-                document.getElementById('userDiaryPoints').textContent = '';
-                document.getElementById('userMasterDiaryPoints').textContent = '';
-                document.getElementById('userPoints3Months').textContent = '';
-                document.getElementById('userFlavourText').textContent = '';
-
-                document.getElementById('totalDropsSubmitted').textContent = '0';
-                document.getElementById('totalPbsSubmitted').textContent = '0';
-
-                if (pointsTrendChartInstance) {
-                    pointsTrendChartInstance.destroy();
-                    pointsTrendChartInstance = null;
-                }
+                // Hide all sections if no user is selected
+                [userDetailsSummary, submissionStatsSection, recentDropsSection, personalBestsProfileSection, pointsTrendSection].forEach(el => {
+                    if (el) el.classList.add('hidden');
+                });
             }
         }
 
@@ -1777,9 +2042,11 @@
                 row.className = 'hover:bg-gray-800 transition-colors duration-150';
 
                 const formattedValue = formatCurrency(drop.value);
+                // This line formats the date for display
+                const formattedReviewedDate = formatToPrettyDate(drop.reviewedDate);
 
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${drop.Id || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${formattedReviewedDate}</td>
                     <td class="px-6 py-4 text-sm text-gray-300 wrap-text">${drop.member_names || 'N/A'}</td>
                     <td class="px-6 py-4 text-sm text-gray-300 wrap-text">${drop.notes || 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${formattedValue}</td>
@@ -1858,119 +2125,59 @@
         }
 
 
-        function renderUserProfileDetails(user) {
-            document.getElementById('userNameDisplay').textContent = user.displayName || 'N/A';
-            document.getElementById('userAvatar').src = `https://placehold.co/80x80/2a608d/ffffff?text=${user.displayName ? user.displayName.charAt(0) : 'U'}`;
-            document.getElementById('userOverallPoints').textContent = user.points ? parseInt(user.points).toLocaleString('de-DE') : '0';
-            const rankName = user.rank_name || 'N/A';
-            document.getElementById('userRankName').textContent = rankName;
-            const rankIconPath = rankName !== 'N/A' ? `/icons/${rankName.toLowerCase().replace(/\s/g, '-')}.webp` : '';
-            document.getElementById('userRankIcon').src = rankIconPath;
+        // REPLACE the existing renderUserEhb function with this one
+        function renderUserEhb(userEhb) {
+            const weeklyEhbEl = document.getElementById('userWeeklyEhb');
+            const topSourceEl = document.getElementById('userTopEhbSource');
 
-            document.getElementById('userMainRsn').textContent = user.mainRSN || 'N/A';
-            document.getElementById('userAltRsn').textContent = user.altRSN || 'N/A';
-            document.getElementById('userJoinDate').textContent = formatToDDMMYYYY(user.joinDate);
-            document.getElementById('userDiaryPoints').textContent = user.diaryPoints || '0';
-            document.getElementById('userMasterDiaryPoints').textContent = user.masterDiaryPoints || '0';
-            document.getElementById('userPoints3Months').textContent = user.points_past_3_months ? parseInt(user.points_past_3_months).toLocaleString('de-DE') : '0';
-            document.getElementById('userFlavourText').textContent = user.flavourText || 'N/A';
-        }
-
-        async function fetchUserPointsTrend(selectedUser) {
-             if (!selectedUser) return;
-            const displayName = selectedUser.displayName;
-            const overallPoints = selectedUser.points || 0;
-
-            const userPointsHistory = allPointsDataForGraph.filter(point => point.displayName === displayName);
-            const sortedPoints = userPointsHistory.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-            const trackedPointsSum = sortedPoints.reduce((sum, point) => sum + (point.points || 0), 0);
-            const startingPoints = overallPoints - trackedPointsSum;
-
-            const labels = [];
-            const data = [];
-            let cumulativePoints = startingPoints;
-
-            sortedPoints.forEach(point => {
-                const date = new Date(point.date);
-                labels.push(`${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`);
-
-                cumulativePoints += (point.points || 0);
-                data.push(cumulativePoints);
-            });
-
-            if(data.length > 0 && data[data.length - 1] !== overallPoints) {
-                console.warn(`Graph's final point (${data[data.length - 1]}) does not match overall points (${overallPoints}). Adjusting for consistency.`);
-                data[data.length - 1] = overallPoints;
+            if (!userEhb || !userEhb.total_weekly_ehb || userEhb.total_weekly_ehb === 0) {
+                weeklyEhbEl.textContent = '0.00';
+                topSourceEl.textContent = 'No EHB this week.';
+                return;
             }
 
-            currentPointsDataForChart = { labels, data };
-            renderPointsTrendGraph();
+            weeklyEhbEl.textContent = (userEhb.total_weekly_ehb || 0).toFixed(2);
+
+            // CORRECTED: This object now correctly references the EHB values from the API
+            const ehbSources = {
+                'The Corrupted Gauntlet': userEhb.the_corrupted_gauntletWeeklyEHB,
+                'Chambers of Xeric': userEhb.chambers_of_xericWeeklyEHB,
+                'Chambers of Xeric (CM)': userEhb.chambers_of_xeric_challenge_modeWeeklyEHB,
+                'Fortis Colosseum': userEhb.sol_hereditWeeklyEHB,
+                'Theatre of Blood': userEhb.theatre_of_bloodWeeklyEHB,
+                'ToB: Hard Mode': userEhb.theatre_of_blood_hard_modeWeeklyEHB,
+                'TzKal-Zuk': userEhb.tzkal_zukWeeklyEHB,
+                'TzTok-Jad': userEhb.tztok_jadWeeklyEHB,
+            };
+
+            const topSource = Object.entries(ehbSources)
+                .filter(([_, value]) => value > 0)
+                .sort((a, b) => b[1] - a[1])[0];
+
+            if (topSource) {
+                topSourceEl.textContent = `${topSource[0]} (${Math.floor(topSource[1])} KC)`;
+            } else {
+                topSourceEl.textContent = 'None from tracked bosses.';
+            }
         }
 
-        function renderPointsTrendGraph() {
-            const ctx = document.getElementById('pointsTrendChart').getContext('2d');
+        // ADD this new function
+        function renderUserRankChanges(displayName) {
+            const listEl = document.getElementById('rankChangesList');
+            const userChanges = allRankChangesData
+                .filter(r => r.displayName === displayName)
+                .slice(0, 5);
 
-            if (pointsTrendChartInstance) {
-                pointsTrendChartInstance.destroy();
+            if (userChanges.length === 0) {
+                listEl.innerHTML = '<li>No recent changes.</li>';
+                return;
             }
 
-            pointsTrendChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: currentPointsDataForChart.labels,
-                    datasets: [{
-                        label: 'Cumulative Points',
-                        data: currentPointsDataForChart.data,
-                        borderColor: 'rgb(51, 184, 230)',
-                        backgroundColor: 'rgba(51, 184, 230, 0.2)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `Points: ${parseInt(context.raw).toLocaleString('de-DE')}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#a0aec0'
-                            },
-                            grid: {
-                                color: '#4a5568'
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                color: '#a0aec0',
-                                callback: function(value) {
-                                    return parseInt(value).toLocaleString('de-DE');
-                                }
-                            },
-                            grid: {
-                                color: '#4a5568'
-                            }
-                        }
-                    }
-                }
-            });
+            listEl.innerHTML = userChanges.map(change => {
+                const date = formatToPrettyDate(change.actionDate);
+                return `<li class="text-sm">(${date}) ${change.rank_before} -> ${change.rank_after}</li>`;
+            }).join('');
         }
-
 
         function updateTotalStats(displayName) {
             const userDropsCount = allDropsData.filter(drop => drop.submitter === displayName).length;
@@ -2531,6 +2738,396 @@
             });
         }
 
+        // --- NEW HOMEPAGE FUNCTIONS ---
+        async function renderHomePage() {
+            renderLatestBingoWinner(allBingoWinnersData);
+            renderCouncil(); // UPDATED
+            renderMotm(); // ADD THIS LINE
+            renderRecentActivity();
+            renderNewestMembers();
+            renderTopPoints();
+            renderDiscordActivity();
+            renderTopBoss();
+            renderClanPointsChart();
+            renderRecentRankChanges();
+        }
+
+        function renderLatestBingoWinner(winners) {
+            const container = document.getElementById('latestBingoWinner');
+            if (!winners || winners.length === 0) {
+                container.innerHTML = '<p class="text-gray-400">No bingo winners found.</p>';
+                return;
+            }
+            const latestWinner = winners[0]; // Assumes the API returns them in descending order
+            container.innerHTML = `
+                <div class="text-center">
+                    <h3 class="text-lg font-semibold text-custom-blue-300">${latestWinner.bingoName}</h3>
+                    <p class="text-yellow-400 text-xl font-bold my-1">${latestWinner.teamName}</p>
+                    <p class="text-sm text-gray-400" title="${latestWinner.participants}">${latestWinner.participants}</p>
+                </div>
+            `;
+        }
+
+        function renderCouncil() {
+            const container = document.getElementById('randomCouncil');
+            const leader = allMiscRolesData.find(role => role.roleName === 'leader');
+
+            if (!leader) {
+                container.innerHTML = '<p class="text-gray-400 text-center">Could not load leader data.</p>';
+                return;
+            }
+
+            const discordProfile = allDiscordProfilesData.find(p => p.displayName === leader.displayName);
+            const imageUrl = discordProfile ? discordProfile.discordProfileImageUrl : `https://placehold.co/80x80/2a608d/ffffff?text=${leader.displayName.charAt(0)}`;
+
+            container.innerHTML = `
+                <h3 class="text-lg font-bold text-custom-blue-400 mb-2 text-center">Leader</h3>
+                <div class="flex flex-col items-center text-center">
+                    <img src="${imageUrl}" alt="${leader.displayName}" class="w-24 h-24 rounded-full mb-2 border-2 border-custom-blue-400">
+                    <p class="text-xl font-semibold text-red-400">${leader.displayName}</p>
+                    <p class="text-sm text-gray-400">Bald👨‍🦲</p>
+                </div>
+            `;
+        }
+
+        function renderMotm() {
+            const container = document.getElementById('motm');
+            const motm = allMiscRolesData.find(role => role.roleName === 'motm');
+
+            if (!motm) {
+                container.innerHTML = '<p class="text-gray-400">MOTM data coming soon!</p>';
+                return;
+            }
+
+            const discordProfile = allDiscordProfilesData.find(p => p.displayName === motm.displayName);
+            const imageUrl = discordProfile ? discordProfile.discordProfileImageUrl : `https://placehold.co/100x100/2a608d/ffffff?text=${motm.displayName.charAt(0)}`;
+
+            container.innerHTML = `
+                <img src="${imageUrl}" alt="Member of the Month" class="w-24 h-24 rounded-full mx-auto mb-3 border-2 border-yellow-400">
+                <p class="text-xl font-bold text-yellow-400">${motm.displayName}</p>
+                <p class="text-sm text-gray-400">Congratulations!</p>
+            `;
+        }
+
+        function renderRecentActivity() {
+            const container = document.getElementById('recentActivity');
+
+            // This combines all items first, providing a true chronological feed.
+            const combinedDrops = allDropsData.map(d => {
+                const dropDate = new Date(d.reviewedDate);
+                return {
+                    ...d,
+                    type: 'drop',
+                    date: isNaN(dropDate.getTime()) ? new Date() : dropDate
+                };
+            });
+
+            const combinedPBs = allPersonalBestsData.map(p => ({
+                ...p,
+                type: 'pb',
+                date: new Date(p.submittedDate)
+            }));
+
+            const combined = [...combinedDrops, ...combinedPBs]
+                .sort((a, b) => b.date - a.date)
+                .slice(0, 15); // Now takes the top 15 from ALL activities
+
+            if (combined.length === 0) {
+                container.innerHTML = '<p class="text-gray-400">No recent activity.</p>';
+                return;
+            }
+
+            container.innerHTML = combined.map(item => {
+                // This is the 'if' block we are changing
+                if (item.type === 'drop') {
+                    const dropName = item.notes || 'a drop'; // Fallback if notes are empty
+                    const party = item.member_names || item.submitter; // Use submitter if no participants listed
+
+                    return `
+                        <div class="flex items-start space-x-3 text-sm">
+                            <span class="text-red-400 font-bold">[DROP]</span>
+                            <div class="flex-1">
+                                <p class="text-gray-300">${party} received <span class="font-semibold text-white">${dropName}</span>, worth ${formatCurrency(item.value || 0)} points.</p>
+                                <p class="text-xs text-gray-500">${formatToDDMMYYYY(item.reviewedDate)}</p>
+                            </div>
+                        </div>
+                    `;
+                } else { // PB logic remains the same
+                    return `
+                         <div class="flex items-start space-x-3 text-sm">
+                            <span class="text-green-400 font-bold">[PB]</span>
+                            <div class="flex-1">
+                                <p class="text-gray-300">${item.member_names} achieved a new PB on ${item.boss_name} (${item.scale}-man) with a time of ${formatTimeFromMs(parseTimeMs(item.time))}.</p>
+                                <p class="text-xs text-gray-500">${formatToDDMMYYYY(item.date)}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        function renderNewestMembers() {
+            const container = document.getElementById('newestMembers');
+            const sortedByJoinDate = [...allUsersData]
+                .filter(u => u.joinDate)
+                .sort((a, b) => new Date(b.joinDate) - new Date(a.joinDate))
+                .slice(0, 5);
+
+            if (sortedByJoinDate.length === 0) {
+                container.innerHTML = '<li>No members found.</li>';
+                return;
+            }
+
+            container.innerHTML = sortedByJoinDate.map(user => `
+                <li class="flex justify-between items-center text-sm">
+                    <span class="font-medium text-gray-300">${user.displayName}</span>
+                    <span class="text-gray-400">${formatToDDMMYYYY(user.joinDate)}</span>
+                </li>
+            `).join('');
+        }
+
+        function renderTopPoints() {
+            const container = document.getElementById('topPoints');
+            const sortedByPoints = [...allUsersData]
+                .sort((a, b) => (parseInt(b.points_past_3_months, 10) || 0) - (parseInt(a.points_past_3_months, 10) || 0))
+                .slice(0, 5);
+
+            if (sortedByPoints.length === 0) {
+                container.innerHTML = '<li>No points data found.</li>';
+                return;
+            }
+
+            container.innerHTML = sortedByPoints.map(user => {
+                // Here we convert the value to an integer before formatting
+                const points = parseInt(user.points_past_3_months || 0, 10);
+
+                return `
+                    <li class="flex justify-between items-center text-sm">
+                        <span class="font-medium text-gray-300">${user.displayName}</span>
+                        <span class="text-custom-blue-300 font-semibold">${formatCurrency(points)}</span>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function renderDiscordActivity() {
+            const container = document.getElementById('discordActivity');
+            const filter = document.getElementById('discordActivityFilter').value;
+
+            let dataToShow;
+            if (filter === 'monthly') {
+                dataToShow = allDiscordActivityMonthlyData;
+            } else if (filter === 'yearly') {
+                dataToShow = allDiscordActivityYearlyData;
+            } else { // Default to weekly
+                dataToShow = allDiscordActivityData;
+            }
+
+            if (!dataToShow || dataToShow.length === 0) {
+                container.innerHTML = '<li>No activity data found for this period.</li>';
+                return;
+            }
+
+            container.innerHTML = dataToShow.slice(0, 20).map(user => `
+                <li class="flex justify-between items-center text-sm">
+                    <span class="font-medium text-gray-300">${user.displayName}</span>
+                    <span class="text-custom-blue-300 font-semibold">${user.messageCount} msgs</span>
+                </li>
+            `).join('');
+        }
+
+        // REPLACE the existing renderTopBoss function with this one
+        function renderTopBoss() {
+            const container = document.getElementById('topBossContainer');
+
+            const ehbBossMapping = {
+                'chambers_of_xericWeeklyEHB': "Chambers of Xeric",
+                'chambers_of_xeric_challenge_modeWeeklyEHB': "Chambers of Xeric (Challenge Mode)",
+                'the_corrupted_gauntletWeeklyEHB': "Corrupted Gauntlet",
+                'sol_hereditWeeklyEHB': "Fortis Colosseum",
+                'theatre_of_bloodWeeklyEHB': "Theatre of Blood",
+                'theatre_of_blood_hard_modeWeeklyEHB': "Theatre of Blood (Hard Mode)",
+                'tzkal_zukWeeklyEHB': "TzKal-Zuk",
+                'tztok_jadWeeklyEHB': "TzTok-Jad",
+            };
+
+            const activeBosses = Object.keys(ehbBossMapping).filter(bossKey =>
+                allUserEhbData.some(user => user[bossKey] > 0)
+            );
+
+            if (activeBosses.length === 0) {
+                container.innerHTML = `
+                    <h3 class="font-semibold text-lg text-custom-blue-300">Top Performers past week</h3>
+                    <p class="text-sm text-gray-400">No weekly EHB records found for any boss.</p>
+                `;
+                return;
+            }
+
+            const randomBossKey = activeBosses[Math.floor(Math.random() * activeBosses.length)];
+            const bossName = ehbBossMapping[randomBossKey];
+
+            // --- NEW: Get TOP 3 EHB records for that boss ---
+            const topEhbUsers = [...allUserEhbData]
+                .filter(u => u[randomBossKey] > 0)
+                .sort((a, b) => b[randomBossKey] - a[randomBossKey])
+                .slice(0, 5);
+
+            // --- NEW: Get TOP 3 time records for that boss ---
+            const topTimePBs = [...allPersonalBestsData]
+                .filter(pb => pb.boss_name === bossName && pb.time)
+                .sort((a, b) => parseTimeMs(a.time) - parseTimeMs(b.time))
+                .slice(0, 5);
+
+            // --- NEW: Build the HTML for the top 3 EHB ---
+            let ehbHtml;
+            if (topEhbUsers.length > 0) {
+                ehbHtml = `
+                    <h4 class="font-semibold text-gray-300 mt-3">Weekly top KC</h4>
+                    <ol class="list-decimal list-inside space-y-1 text-sm text-gray-400">
+                        ${topEhbUsers.map(ehbRecord => {
+                            const topPerformerName = ehbRecord.associated_rsns ? ehbRecord.associated_rsns.split(',')[0].trim() : 'Unknown';
+                            // Use Math.floor() to show EHB as an integer
+                            const ehbValue = Math.floor(ehbRecord[randomBossKey]);
+                            return `<li><strong>${topPerformerName}</strong> (${ehbValue})</li>`;
+                        }).join('')}
+                    </ol>
+                `;
+            } else {
+                ehbHtml = `<p class="text-sm text-gray-400 mt-3">No EHB records this week.</p>`;
+            }
+
+            // --- NEW: Build the HTML for the top 3 times ---
+            let timeHtml;
+            if (topTimePBs.length > 0) {
+                timeHtml = `
+                     <h4 class="font-semibold text-gray-300 mt-3">Top Times</h4>
+                     <ol class="list-decimal list-inside space-y-1 text-sm text-gray-400">
+                        ${topTimePBs.map(pb => {
+                            const memberName = pb.member_names || 'Unknown';
+                            const formattedTime = formatTimeFromMs(parseTimeMs(pb.time));
+                            return `<li><strong>${memberName}</strong> (${formattedTime})</li>`;
+                        }).join('')}
+                     </ol>
+                `;
+            } else {
+                timeHtml = `<p class="text-sm text-gray-400 mt-3">No time records found.</p>`;
+            }
+
+            // --- Final Assembly ---
+            container.innerHTML = `
+                <h3 class="font-semibold text-lg text-custom-blue-300">${bossName}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>${ehbHtml}</div>
+                    <div>${timeHtml}</div>
+                </div>
+            `;
+        }
+
+        function renderRecentRankChanges() {
+            const container = document.getElementById('recentRankChanges');
+            if (!allRankChangesData || allRankChangesData.length === 0) {
+                container.innerHTML = '<li class="text-gray-400 text-center">No rank changes found.</li>';
+                return;
+            }
+
+            // Sort by date and take the 10 most recent changes
+            const recentChanges = [...allRankChangesData]
+                .sort((a, b) => new Date(b.actionDate) - new Date(a.actionDate))
+                .slice(0, 20);
+
+            container.innerHTML = recentChanges.map(change => {
+                // --- NEW LOGIC START ---
+                let oldRankClass = 'font-medium text-gray-500'; // Default class
+                let newRankClass = 'font-medium text-gray-500'; // Default class
+
+                const idBefore = parseInt(change.rankId_before, 10);
+                const idAfter = parseInt(change.rankId_after, 10);
+
+                if (!isNaN(idBefore) && !isNaN(idAfter)) {
+                    if (idAfter > idBefore) { // This is a Promotion
+                        oldRankClass = 'font-medium text-red-400/80';
+                        newRankClass = 'font-medium text-green-400/80';
+                    } else if (idAfter < idBefore) { // This is a Demotion
+                        oldRankClass = 'font-medium text-green-400/80';
+                        newRankClass = 'font-medium text-red-400/80';
+                    }
+                }
+                // --- NEW LOGIC END ---
+
+                return `
+                    <li class="text-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-white">${change.displayName}</span>
+                            <span class="text-gray-500">${formatToDDMMYYYY(change.actionDate)}</span>
+                        </div>
+                        <div class="text-gray-400 mt-1">
+                            <span class="${oldRankClass}">${change.rank_before}</span> → <span class="${newRankClass}">${change.rank_after}</span>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function renderClanPointsChart() {
+            const ctx = document.getElementById('clanPointsChart')?.getContext('2d');
+            if (!ctx) return;
+
+            // Group points by week
+            const weeklyPoints = {};
+            allPointsData.forEach(p => {
+                const date = new Date(p.date);
+                const year = date.getFullYear();
+                const week = getWeekNumber(date);
+                const key = `${year}-W${String(week).padStart(2, '0')}`;
+
+                if (!weeklyPoints[key]) {
+                    weeklyPoints[key] = 0;
+                }
+                weeklyPoints[key] += p.points;
+            });
+
+            const sortedWeeks = Object.keys(weeklyPoints).sort().slice(-24); // Last 24 weeks
+            const labels = sortedWeeks;
+            const data = sortedWeeks.map(week => weeklyPoints[week]);
+
+            if (clanPointsChartInstance) {
+                clanPointsChartInstance.destroy();
+            }
+            clanPointsChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Total Points Gained',
+                        data: data,
+                        backgroundColor: 'rgba(51, 184, 230, 0.6)',
+                        borderColor: 'rgb(51, 184, 230)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { color: '#a0aec0' } },
+                        x: { ticks: { color: '#a0aec0' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Helper function to get week number
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+            return weekNo;
+        }
+
+
+
         // --- General Page Navigation and Initialization ---
 
         // FIX: Moved showPage and changePbPage to the global scope
@@ -2549,6 +3146,14 @@
             if (targetPage) {
                 targetPage.classList.remove('hidden');
 
+                // ADD THIS IF BLOCK
+                if (pageId === 'home') {
+                    renderHomePage();
+                }
+
+                // Note: The homepage widgets are now rendered once in preloadAllData
+                // so we don't need to call them again here unless they need refreshing.
+
                 if (pageId === 'users') {
                     fetchUsersData();
                 } else if (pageId === 'personalbests') {
@@ -2558,7 +3163,7 @@
                 } else if (pageId === 'points') {
                     fetchPointsData();
                 } else if (pageId === 'halloffame') {
-                    await fetchBingoWinnersData();
+                    await renderBingoWinners(allBingoWinnersData);
                 } else if (pageId === 'approved-stats') {
                     await Promise.all([fetchApprovedDropsData(), fetchApprovedPbsData()]);
                 } else if (pageId === 'userprofile') {
@@ -2575,6 +3180,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+
             console.log('DOM content loaded. Attaching event listeners and preloading data.');
 
             await preloadAllData();
@@ -2632,6 +3238,12 @@
                 });
             }
 
+            // ADD THIS EVENT LISTENER
+            const discordActivityFilter = document.getElementById('discordActivityFilter');
+            if (discordActivityFilter) {
+                discordActivityFilter.addEventListener('change', renderDiscordActivity);
+            }
+
             document.querySelectorAll('#pointsTable thead th.sortable').forEach(header => {
                 header.addEventListener('click', (event) => {
                     const headerElement = event.currentTarget;
@@ -2668,6 +3280,9 @@
                 showPage(pageId);
             }
         });
+
+
+
     </script>
 </body>
 </html>
