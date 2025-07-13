@@ -685,6 +685,14 @@ class acceptorEditSubmissionModal(Modal):  # modal to edit msg
         await interaction.response.send_message("Drop submission has been updated", ephemeral=True)
 
 
+def insertIntoDropParticipants(dropId:int, userId:int):
+    #print(f"inserting {dropId} {userId} into sanitysubmissiontable")
+    sql = "INSERT INTO sanity2.submission_participants (dropId, userId) VALUES (%s, %s)"
+    values = (dropId, userId)
+
+    mycursor.execute(sql, values)
+    db.commit()
+
 class editSubmissionModal(Modal):  # modal to edit msg
     def __init__(self, drop_name:str, drop_value:int, nonclannies:int, author, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -914,6 +922,10 @@ class Submit(commands.Cog):
 
                 await ctx.respond(content=None,embed=embed,file=image, view=view)
 
+                # insert all entries into new database submissiion_participants for better joins
+                for userId in clannies_list:
+                    insertIntoDropParticipants(dbId, userId)
+
                 #waits 30s and checks if user sent submission for approval
                 await asyncio.sleep(30)  #send message if drop not submitted or deleted
                 status = getSubmissionStatus(dbId)
@@ -967,6 +979,7 @@ class Submit(commands.Cog):
                 # print("WE GUCCI STEP 1")
 
                 if len(clannies_list) > 0:
+                    print(clannies_list)
                     #check if item drop value has a minimum
                     new_drop_value = checkItemValueDrop(drop_name, drop_value)
                     if new_drop_value > drop_value:
@@ -1003,6 +1016,10 @@ class Submit(commands.Cog):
                     view = submissionButtons(ctx.author)
 
                     await msg.edit(content=None,embed=embed, file=image, view=view)
+
+                    #insert all entries into new database submissiion_participants for better joins
+                    for userId in clannies_list:
+                        insertIntoDropParticipants(dbId,userId)
 
                     # waits 30s and checks if user sent submission for approval
                     await asyncio.sleep(30)  # send message if drop not submitted or deleted

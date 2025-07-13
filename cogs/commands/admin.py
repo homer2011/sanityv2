@@ -666,10 +666,10 @@ class Admin(commands.Cog):
         user_ids = [user[0] for user in all_users]
 
         for user_id in user_ids:
+            print(user_id)
             embed, diaryPoints, masterDiaryPoints = checkUserDiary(user_id)
 
-
-        await ctx.respond("Updated all diary points")
+        #await ctx.respond("Updated all diary points")
 
     """@bridge.bridge_command(guild_ids=testingservers, name="updaterefs",
                            description="Admin - update a members refs")
@@ -733,7 +733,7 @@ class Admin(commands.Cog):
 
     @bridge.bridge_command(guild_ids=testingservers, name="awardfix",
                            description="Admin - create embed for sanity awards")
-    @has_any_role(*admin_roles_ids)
+    #@has_any_role(*admin_roles_ids)
     async def awardfix(self, ctx: discord.ApplicationContext, title:str,description:str):
         embed = discord.Embed(
             title=f"{title}",
@@ -1113,8 +1113,14 @@ class Admin(commands.Cog):
         db.commit()
 
         mycursor.execute(
-            f"update sanity2.personalbests set members = replace((replace(members, ',{user.id}','')),'{user.id},','')"
+            f"update sanity2.personalbests set members = replace(replace(replace(members, ',{user.id}',''),'{user.id},',''),'{user.id}','')"
         )
+        db.commit()
+
+        mycursor.execute(
+            f"update sanity2.submissions set participants = replace(replace(replace(participants, ',{user.id}',''),'{user.id},',''),'{user.id}','')"
+        )
+        db.commit()
 
         insert_audit_Logs(ctx.author.id,2,datetime.datetime.now(),f"{user.display_name} has quitto",user.id)
 

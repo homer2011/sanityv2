@@ -152,6 +152,12 @@ async def diceRollBingoDropFixer():
                     updateTileProgress(matchedRollTile[0][0], amountReceived + 1,dropIds)
 
 
+@diceRollBingoDropFixer.before_loop  # REMOVES
+async def before():
+    await bot.wait_until_ready()
+diceRollBingoDropFixer.start()
+
+
 def calculate_position(tile_number):
     """Calculate x,y coordinates for a given tile number in zigzag pattern"""
 
@@ -185,10 +191,6 @@ def getCurrentTileStatus(teamName:str, tileId:int):
     else:
         return None
 
-@diceRollBingoDropFixer.before_loop  # REMOVES
-async def before():
-    await bot.wait_until_ready()
-diceRollBingoDropFixer.start()
 
 
 class dicerollbino(commands.Cog):

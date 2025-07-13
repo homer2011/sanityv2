@@ -12,6 +12,7 @@ from bot import bot
 from cogs.commands import admin
 from cogs.commands.admin import datetime_to_string
 from cogs.commands.dropSubmit import getDisplayNameFromListOfuserIDs
+from cogs.handlers.diaryHandler import checkUserDiary
 from cogs.handlers.DatabaseHandler import get_all_ranks, get_all_users, updateUserRank, mycursor, getUserData, db, \
     insert_Point_Tracker, db_user, updatersn, \
     getUserData, get_all_active_users, get_channel, insert_audit_Logs, fetchranksGracePeriod, update_user_points, \
@@ -325,7 +326,7 @@ class diaryPointClaimerView(View):  # for council / drop acceptors etc in #poste
 """@task.loop(seconds=30)
 async def auditlogposter():"""
 
-@tasks.loop(hours=11) #UPDATE RSN changes time=[time(hour=16,minute=14)]
+@tasks.loop(time=[time(hour=16,minute=14)]) #UPDATE RSN changes time=[time(hour=16,minute=14)]
 async def rsnwiseoldmanupdater():
     text = latestNameChanges(230)
 
@@ -357,11 +358,18 @@ async def before():
 rsnwiseoldmanupdater.start()
 
 
-@tasks.loop(time=[time(hour=17,minute=41)])
+@tasks.loop(time=[time(hour=17,minute=41)]) #]
 async def updatealldairiepoints():
     try:
-        await admin.Admin.updatediaries(ctx=None)
-        print("finished updating diary points")
+        all_users = get_all_users()
+        #print(all_users)
+        user_ids = [user[0] for user in all_users]
+
+        for user_id in user_ids:
+            #print(user_id)
+            embed, diaryPoints, masterDiaryPoints = checkUserDiary(user_id)
+
+        print("FINISHED UPDATING DAIRIESSSSSSSSSSS")
     except:
         print("failed updating diary points - updatealldairiepoints - might have worked still")
 
@@ -904,7 +912,7 @@ async def getDiscordImageUrl():
                 profile_url_data_to_update.append((member.id, member.display_avatar.url))
             else:
                 # If not, skip them and print a notice
-                print(f"Skipping {member.display_name} (ID: {member.id}) - not found in '{users_table}'.")
+                print(f"Skipping {member.id} (ID: {member.id}) - not found in '{users_table}'.")
                 skipped_count += 1
 
         print(f"Prepared to update {len(profile_url_data_to_update)} members. Skipped {skipped_count} members.")
@@ -921,7 +929,7 @@ async def getDiscordImageUrl():
             # 6. Commit the changes to the database
             db.commit()
 
-            print(f"✅ Database updated successfully. {mycursor.rowcount} rows were affected in '{profile_url_table}'.")
+            print(f"Database updated successfully. {mycursor.rowcount} rows were affected in '{profile_url_table}'.")
 
     except Exception as e:
         print(f"❌ An error occurred: {e}")

@@ -297,37 +297,49 @@ def get_users_data():
         cursor = connection.cursor(dictionary=True) # dictionary=True makes rows accessible by column name
 
         query = """
-            SELECT 
-            u.displayName, 
-            u.points, 
-            u.rankId, 
+      SELECT
+            u.displayName,
+            u.points,
+            u.rankId,
             r.name AS rank_name,
-            u.mainRSN, 
-            u.altRSN, 
-            u.joinDate, 
+            u.mainRSN,
+            u.altRSN,
+            u.joinDate,
             u.diaryPoints,
-            u.masterDiaryPoints, 
-            d.flavourText, 
+            u.masterDiaryPoints,
+            d.flavourText,
             u.diaryTierClaimed,
             u.nationality,
-            -- This subquery calculates the points for the last 3 months for each user
-            COALESCE((
-                SELECT SUM(pt.points) 
-                FROM sanity2.pointtracker pt
-                WHERE pt.userId = u.userId 
-                  AND pt.date >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
-            ), 0) AS points_past_3_months
-        FROM 
+            COALESCE(pt_sum.points_past_3_months, 0) AS points_past_3_months,
+            COALESCE(pt_sum.points_current_month_to_today, 0) AS points_current_month_to_today,
+            COALESCE(pt_sum.points_last_month, 0) AS points_last_month,
+            COALESCE(pt_sum.points_two_months_ago, 0) AS points_two_months_ago
+        FROM
             sanity2.users u
-        left JOIN 
+        LEFT JOIN
             sanity2.ranks r ON r.id = u.rankId
-        left JOIN 
+        LEFT JOIN
             sanity2.diarytypes d ON d.difficulty = u.diaryTierClaimed
-        WHERE 
+        LEFT JOIN (
+            SELECT
+                pt.userId,
+                SUM(pt.points) AS points_past_3_months,
+                SUM(CASE WHEN pt.date >= DATE_FORMAT(CURDATE(), '%Y-%m-01') THEN pt.points ELSE 0 END) AS points_current_month_to_today,
+                SUM(CASE WHEN pt.date BETWEEN DATE_FORMAT(CURDATE() - INTERVAL 1 MONTH, '%Y-%m-01') AND LAST_DAY(CURDATE() - INTERVAL 1 MONTH) THEN pt.points ELSE 0 END) AS points_last_month,
+                SUM(CASE WHEN pt.date BETWEEN DATE_FORMAT(CURDATE() - INTERVAL 2 MONTH, '%Y-%m-01') AND LAST_DAY(CURDATE() - INTERVAL 2 MONTH) THEN pt.points ELSE 0 END) AS points_two_months_ago
+            FROM
+                sanity2.pointtracker pt
+            WHERE
+                -- Pre-filter the pointtracker table for efficiency
+                pt.date >= DATE_FORMAT(CURDATE() - INTERVAL 2 MONTH, '%Y-%m-01')
+            GROUP BY
+                pt.userId
+        ) AS pt_sum ON u.userId = pt_sum.userId
+        WHERE
             u.isActive = 1
-        ORDER BY 
-            u.rankId DESC, 
-            points DESC
+        ORDER BY
+            u.rankId DESC,
+            u.points DESC;
         """
         cursor.execute(query)
         users_data = cursor.fetchall()
@@ -630,7 +642,7 @@ def get_drops_data():
             SELECT
                 s.Id,
                 submitter_u.displayName AS submitter,
-                GROUP_CONCAT(participant_u.displayName ORDER BY FIND_IN_SET(participant_u.userId, REPLACE(s.participants, '*', '')) SEPARATOR ', ') AS member_names,
+                GROUP_CONCAT(participant_u.displayName ORDER BY sp.id SEPARATOR ', ') AS member_names,
                 s.notes,
                 s.value,
                 s2.name AS status_name,
@@ -639,10 +651,14 @@ def get_drops_data():
                 reviewer_u.displayName AS reviewer
             FROM
                 sanity2.submissions s
+            -- Replaced the old FIND_IN_SET join with these two efficient joins
+            LEFT JOIN
+                sanity2.submission_participants sp ON s.Id = sp.dropId
+            LEFT JOIN
+                sanity2.users participant_u ON sp.userId = participant_u.userId
+            -- The rest of your original joins
             LEFT JOIN
                 sanity2.users submitter_u ON REPLACE(s.userId, '*', '') = submitter_u.userId
-            LEFT JOIN
-                sanity2.users participant_u ON FIND_IN_SET(participant_u.userId, REPLACE(s.participants, '*', '')) > 0
             LEFT JOIN
                 sanity2.users reviewer_u ON REPLACE(s.reviewedBy, '*', '') = reviewer_u.userId
             LEFT JOIN
@@ -656,9 +672,9 @@ def get_drops_data():
                 s.imageUrl,
                 s.reviewedDate,
                 s2.name,
-                reviewer_u.displayName -- <--- ADDED THIS LINE
+                reviewer_u.displayName
             ORDER BY
-                Id DESC
+                Id DESC;
         """
         cursor.execute(query)
         drops_data = cursor.fetchall()

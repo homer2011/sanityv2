@@ -41,6 +41,14 @@
         .table-container::-webkit-scrollbar-thumb:hover {
             background: #2a608d; /* custom-blue-600 */
         }
+
+        .sticky-col {
+            position: -webkit-sticky; /* For Safari compatibility */
+            position: sticky;
+            left: 0;
+            z-index: 10; /* Ensures the sticky column stays on top */
+        }
+
         /* Style for sortable headers */
         th.sortable {
             cursor: pointer;
@@ -82,15 +90,23 @@
         /* NProgress Customization */
         #nprogress .bar {
           background: #00a3d1 !important; /* custom-blue-500 */
-          height: 3px !important;
+          height: 5px !important;
         }
         #nprogress .peg {
-          box-shadow: 0 0 10px #00a3d1, 0 0 5px #00a3d1 !important;
+          box-shadow: 0 0 10px #00a3d1, 0 0 7px #00a3d1 !important;
         }
         #nprogress .spinner-icon {
           border-top-color: #00a3d1 !important;
           border-left-color: #00a3d1 !important;
         }
+
+        .monthly-points-col {
+            display: none;
+        }
+        #usersTable.show-monthly-points .monthly-points-col {
+            display: table-cell;
+        }
+
     </style>
     <script>
         tailwind.config = {
@@ -177,7 +193,7 @@
                     <p class="text-center text-gray-400">Loading Council...</p>
                 </div>
                 <div class="bg-gray-800 p-4 rounded-lg shadow-md">
-                    <h2 class="text-lg font-bold text-custom-blue-400 mb-2 text-center">Member of the Month</h2>
+                    <h2 class="text-lg font-bold text-yellow-400 mb-2 text-center">Member of the Month</h2>
                     <div id="motm" class="text-center">
                         <p class="text-gray-400">Loading MOTM...</p>
                     </div>
@@ -370,11 +386,22 @@
                            class="w-full p-3 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue-500 transition-all duration-200 bg-gray-700 text-white placeholder-gray-400">
                 </div>
 
+                <div class="mb-4 flex justify-end items-center">
+                    <label for="togglePointColumns" class="flex items-center cursor-pointer">
+                        <span class="mr-3 text-gray-300">Show Monthly Point Gains</span>
+                        <div class="relative">
+                            <input type="checkbox" id="togglePointColumns" class="sr-only peer">
+                            <div class="w-10 h-6 bg-gray-700 rounded-full shadow-inner peer-checked:bg-custom-blue-500 transition-colors"></div>
+                            <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-4"></div>
+                        </div>
+                    </label>
+                </div>
+
                 <div class="overflow-x-auto table-container rounded-lg border border-gray-700 shadow-sm">
                     <table id="usersTable" class="min-w-full divide-y divide-gray-700 bg-gray-900 text-gray-200">
                         <thead class="bg-gray-700">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider rounded-tl-lg sortable" data-column="displayName" data-type="string">Display Name
+                                <th scope="col" class="sticky-col bg-gray-700 px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider rounded-tl-lg sortable" data-column="displayName" data-type="string">Display Name
                                     <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
                                     <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                                 </th>
@@ -411,6 +438,18 @@
                                     <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                                 </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sortable" data-column="points_past_3_months" data-type="number">Points (3m)
+                                    <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                                    <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </th>
+                                <th scope="col" id="points-current-month" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sortable monthly-points-col hidden" data-column="points_current_month_to_today" data-type="number">
+                                    <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                                    <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </th>
+                                <th scope="col" id="points-last-month" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sortable monthly-points-col hidden" data-column="points_last_month" data-type="number">
+                                    <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                                    <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </th>
+                                <th scope="col" id="points-two-months-ago" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sortable monthly-points-col hidden" data-column="points_two_months_ago" data-type="number">
                                     <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
                                     <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                                 </th>
@@ -1070,12 +1109,32 @@
 
         function renderUsersTable(usersToDisplay) {
             const tableBody = document.querySelector('#usersTable tbody');
+            const table = document.getElementById('usersTable'); // Get the table element
             tableBody.innerHTML = '';
 
             if (usersToDisplay.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-gray-400">No matching users found.</td></tr>`;
+                // Corrected colspan to 13 to account for new columns
+                tableBody.innerHTML = `<tr><td colspan="13" class="text-center py-4 text-gray-400">No matching users found.</td></tr>`;
                 return;
             }
+
+            // --- 🔽 DYNAMIC HEADER LOGIC ADDED HERE 🔽 ---
+            const now = new Date();
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+            const currentMonth = monthNames[now.getMonth()];
+            const lastMonth = monthNames[(now.getMonth() - 1 + 12) % 12];
+            const twoMonthsAgo = monthNames[(now.getMonth() - 2 + 12) % 12];
+
+            const year = String(now.getFullYear()).slice(-2);
+            const lastMonthYear = now.getMonth() === 0 ? String(now.getFullYear() - 1).slice(-2) : year;
+            const twoMonthsAgoYear = now.getMonth() <= 1 ? String(now.getFullYear() - 1).slice(-2) : year;
+
+            document.getElementById('points-current-month').textContent = `Points (${currentMonth}-${year})`;
+            document.getElementById('points-last-month').textContent = `Points (${lastMonth}-${lastMonthYear})`;
+            document.getElementById('points-two-months-ago').textContent = `Points (${twoMonthsAgo}-${twoMonthsAgoYear})`;
+            // --- END OF DYNAMIC HEADER LOGIC ---
+
 
             const startIndex = (usersCurrentPage - 1) * usersItemsPerPage;
             const endIndex = startIndex + usersItemsPerPage;
@@ -1089,6 +1148,12 @@
                 const formattedPoints3Months = user.points_past_3_months ? parseInt(user.points_past_3_months).toLocaleString('de-DE') : '0';
                 const formattedJoinDate = formatToDDMMYYYY(user.joinDate);
 
+                // --- 🔽 FORMATTING FOR NEW POINT COLUMNS 🔽 ---
+                const formattedPointsCurrentMonth = user.points_current_month_to_today ? parseInt(user.points_current_month_to_today).toLocaleString('de-DE') : '0';
+                const formattedPointsLastMonth = user.points_last_month ? parseInt(user.points_last_month).toLocaleString('de-DE') : '0';
+                const formattedPointsTwoMonthsAgo = user.points_two_months_ago ? parseInt(user.points_two_months_ago).toLocaleString('de-DE') : '0';
+
+
                 const flagHtml = (user.nationality && user.nationality !== 'AQ')
                     ? `<img src="https://flagcdn.com/w20/${user.nationality.toLowerCase()}.png" alt="${user.nationality}" class="inline-block h-4 w-5 mr-2 rounded-sm" onerror="this.style.display='none'">`
                     : '';
@@ -1100,8 +1165,9 @@
                     </div>
                 `;
 
+                // --- 🔽 ROW HTML UPDATED WITH NEW COLUMNS 🔽 ---
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">${displayNameContent}</td>
+                    <td class="sticky-col bg-gray-900 px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">${displayNameContent}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${formattedPoints}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${user.rank_name || 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${user.mainRSN || 'N/A'}</td>
@@ -1111,6 +1177,9 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${user.masterDiaryPoints || 0}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${user.flavourText || 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${formattedPoints3Months}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 monthly-points-col hidden">${formattedPointsCurrentMonth}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 monthly-points-col hidden">${formattedPointsLastMonth}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300 monthly-points-col hidden">${formattedPointsTwoMonthsAgo}</td>
                 `;
                 tableBody.appendChild(row);
             });
@@ -1122,6 +1191,14 @@
                 }
             });
             renderUsersPagination(usersToDisplay.length);
+
+            // Toggle visibility based on the checkbox state
+            const checkbox = document.getElementById('togglePointColumns');
+            if (checkbox.checked) {
+                table.classList.add('show-monthly-points');
+            } else {
+                table.classList.remove('show-monthly-points');
+            }
         }
 
         function renderUsersPagination(totalItems) {
@@ -2360,33 +2437,11 @@
             });
         }
 
-        function groupAndSortPBs(personalBests) {
-            const scaleFilter = document.getElementById('scaleFilter')?.value;
-            const isAllScales = scaleFilter === 'All' || !scaleFilter;
-
-            const userBestTimes = personalBests.reduce((acc, pb) => {
-                const userKey = isAllScales
-                    ? `${pb.boss_name || 'Unknown'}|${pb.member_names || 'Unknown'}`
-                    : `${pb.boss_name || 'Unknown'}|${pb.scale || 'Solo'}|${pb.member_names || 'Unknown'}`;
-
-                const timeMs = parseTimeMs(pb.time);
-
-                if (!acc[userKey] || timeMs < acc[userKey].timeMs) {
-                    acc[userKey] = {
-                        ...pb,
-                        timeMs: timeMs
-                    };
-                }
-                return acc;
-            }, {});
-
-            const bestTimes = Object.values(userBestTimes);
-
-            const grouped = bestTimes.reduce((acc, pb) => {
-                const key = isAllScales
-                    ? `${pb.boss_name || 'Unknown'}`
-                    : `${pb.boss_name || 'Unknown'}|${pb.scale || 'Solo'}`;
-
+        function groupAndSortAllPBs(personalBests) {
+            // 1. Group all PBs by boss and scale
+            const grouped = personalBests.reduce((acc, pb) => {
+                if (!pb.boss_name || !pb.scale || !pb.time) return acc;
+                const key = `${pb.boss_name}|${pb.scale}`;
                 if (!acc[key]) {
                     acc[key] = [];
                 }
@@ -2394,9 +2449,34 @@
                 return acc;
             }, {});
 
-            Object.values(grouped).forEach(group => {
-                group.sort((a, b) => a.timeMs - b.timeMs);
-            });
+            // 2. For each group, sort by time and then filter for unique members
+            for (const key in grouped) {
+                const group = grouped[key];
+
+                // First, sort the entire group by time to find the best times overall
+                group.sort((a, b) => {
+                    const timeA = parseTimeMs(a.time);
+                    const timeB = parseTimeMs(b.time);
+                    if (isNaN(timeA)) return 1;
+                    if (isNaN(timeB)) return -1;
+                    return timeA - timeB;
+                });
+
+                // ** NEW LOGIC STARTS HERE **
+                // Now, create a new list containing only the best entry for each unique member/team
+                const uniqueMemberPBs = [];
+                const seenMembers = new Set();
+
+                for (const pb of group) {
+                    if (!seenMembers.has(pb.member_names)) {
+                        uniqueMemberPBs.push(pb);
+                        seenMembers.add(pb.member_names);
+                    }
+                }
+                // Replace the original group with the one filtered for unique members
+                grouped[key] = uniqueMemberPBs;
+                // ** NEW LOGIC ENDS HERE **
+            }
 
             return grouped;
         }
@@ -2451,27 +2531,30 @@
             return paginationHtml;
         }
 
-        function renderPbHiscoresTable(personalBests) {
+        function renderPbHiscoresTable(groupedPBs) {
             const container = document.getElementById('pbHiscoresTableContainer');
-            if (!personalBests || personalBests.length === 0) {
+            const groupKeys = Object.keys(groupedPBs);
+
+            if (groupKeys.length === 0) {
                 container.innerHTML = '<p class="text-center py-8 text-gray-400">No personal bests found matching the selected filters.</p>';
-                document.getElementById('paginationContainer')?.remove();
                 return;
             }
 
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedPBs = personalBests.slice(startIndex, endIndex);
+            // Sort the groups alphabetically by boss name and then numerically by scale
+            groupKeys.sort((a, b) => {
+                const [bossA, scaleA] = a.split('|');
+                const [bossB, scaleB] = b.split('|');
+                if (bossA < bossB) return -1;
+                if (bossA > bossB) return 1;
+                return parseInt(scaleA, 10) - parseInt(scaleB, 10);
+            });
 
-            const groupedPBs = groupAndSortPBs(paginatedPBs);
-            const scaleFilter = document.getElementById('scaleFilter')?.value;
-            const isAllScales = scaleFilter === 'All' || !scaleFilter;
+            container.innerHTML = groupKeys.map(key => {
+                const pbs = groupedPBs[key];
+                if (pbs.length === 0) return ''; // Don't render a table for an empty group
 
-            container.innerHTML = Object.entries(groupedPBs).map(([key, pbs]) => {
                 const [bossName, scale] = key.split('|');
-                const title = isAllScales
-                    ? `${bossName}`
-                    : `${bossName} (${scale} Player${scale !== '1' ? 's' : ''})`;
+                const title = `${bossName} (${scale} Player${scale !== '1' ? 's' : ''})`;
 
                 return `
                     <div class="mb-8">
@@ -2480,9 +2563,8 @@
                             <table class="min-w-full divide-y divide-gray-700 bg-gray-900 text-gray-200">
                                 <thead class="bg-gray-800">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-12">#</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider w-12">#</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Players</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider w-20">Scale</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-24">Time</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider w-28">Date</th>
                                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider w-16">Image</th>
@@ -2494,14 +2576,11 @@
                                             <td class="px-2 py-3 whitespace-nowrap text-sm font-medium text-gray-200 text-center w-12">
                                                 ${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                                             </td>
-                                            <td class="px-3 py-3 text-sm text-gray-300 wrap-text max-w-[256px] truncate" title="${pb.member_names || 'N/A'}">
+                                            <td class="px-3 py-3 text-sm text-gray-300 wrap-text max-w-sm truncate" title="${pb.member_names || 'N/A'}">
                                                 ${pb.member_names || 'N/A'}
                                             </td>
-                                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-300 text-center w-20">
-                                                ${pb.scale || '1'} Player${pb.scale !== '1' ? 's' : ''}
-                                            </td>
-                                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-300 text-center w-28">${formatTimeFromMs(parseTimeMs(pb.time))}</td>
-                                            <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-300 text-center w-32">${formatToDDMMYYYY(pb.submittedDate)}</td>
+                                            <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-300 w-28">${formatTimeFromMs(parseTimeMs(pb.time))}</td>
+                                            <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-300 w-32">${formatToDDMMYYYY(pb.submittedDate)}</td>
                                             <td class="px-2 py-3 whitespace-nowrap text-sm text-gray-300 text-center w-16">
                                                 ${pb.imageUrl ?
                                                     `<a href="${pb.imageUrl}" target="_blank" rel="noopener noreferrer"
@@ -2521,31 +2600,39 @@
                         </div>
                     </div>
                 `;
-            }).join('');
+            }).join(''); // <-- THIS IS THE FIX
         }
 
         async function updatePbHiscores() {
             NProgress.start();
             const bossFilter = document.getElementById('bossFilter').value;
             const scaleFilter = document.getElementById('scaleFilter').value;
+            const isFiltered = bossFilter || scaleFilter; // Check if any filter is active
 
-            if (bossFilter) {
-                updateBossImage(bossFilter);
-            } else {
-                updateBossImage(null);
-            }
+            updateBossImage(bossFilter || null);
 
+            // 1. Filter PBs based on the dropdown selections
             const filteredPBs = filterPersonalBests(allPersonalBestsData, bossFilter, scaleFilter);
-            renderPbHiscoresTable(filteredPBs);
 
-            if (filteredPBs.length > itemsPerPage) {
-                renderPagination(filteredPBs.length, currentPage, itemsPerPage, 'paginationContainer');
-            } else {
-                const paginationContainer = document.getElementById('paginationContainer');
-                if (paginationContainer) {
-                    paginationContainer.innerHTML = '';
+            // 2. Group the filtered list and sort each group by time
+            let processedGroups = groupAndSortAllPBs(filteredPBs);
+
+            // 3. If NO filters are applied, slice each group to show only the top 5
+            if (!isFiltered) {
+                for (const key in processedGroups) {
+                    processedGroups[key] = processedGroups[key].slice(0, 5);
                 }
             }
+
+            // 4. Render the final, processed groups into tables
+            renderPbHiscoresTable(processedGroups);
+
+            // Clear the old pagination, as this new grouped view doesn't use it
+            const paginationContainer = document.getElementById('paginationContainer');
+            if (paginationContainer) {
+                paginationContainer.innerHTML = '';
+            }
+
             NProgress.done();
         }
 
@@ -2781,10 +2868,10 @@
             const imageUrl = discordProfile ? discordProfile.discordProfileImageUrl : `https://placehold.co/80x80/2a608d/ffffff?text=${leader.displayName.charAt(0)}`;
 
             container.innerHTML = `
-                <h3 class="text-lg font-bold text-custom-blue-400 mb-2 text-center">Leader</h3>
+                <h3 class="text-lg font-bold text-red-800 mb-2 text-center">Leader</h3>
                 <div class="flex flex-col items-center text-center">
-                    <img src="${imageUrl}" alt="${leader.displayName}" class="w-24 h-24 rounded-full mb-2 border-2 border-custom-blue-400">
-                    <p class="text-xl font-semibold text-red-400">${leader.displayName}</p>
+                    <img src="${imageUrl}" alt="${leader.displayName}" class="w-24 h-24 rounded-full mb-2 border-2 border-red-800">
+                    <p class="text-xl font-semibold text-red-800">${leader.displayName}</p>
                     <p class="text-sm text-gray-400">Bald👨‍🦲</p>
                 </div>
             `;
@@ -3184,6 +3271,16 @@
             console.log('DOM content loaded. Attaching event listeners and preloading data.');
 
             await preloadAllData();
+
+            // --- 🔽 EVENT LISTENER FOR THE NEW CHECKBOX 🔽 ---
+            const toggleCheckbox = document.getElementById('togglePointColumns');
+            if (toggleCheckbox) {
+                toggleCheckbox.addEventListener('change', () => {
+                    const usersTable = document.getElementById('usersTable');
+                    usersTable.classList.toggle('show-monthly-points', toggleCheckbox.checked);
+                });
+            }
+
 
             // Attach event listeners for Users table search and sort
             const usersSearchInput = document.getElementById('searchInput');

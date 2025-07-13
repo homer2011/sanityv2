@@ -210,7 +210,7 @@ class submissionButtons(View):  # button
                     embed.color = discord.Color.green()
 
         await interaction.message.edit(view=None, embed=embed, file=new_image2)
-        await interaction.response.send_message("Your pb has been submitted for approval ✅", ephemeral=True)
+        #await interaction.response.send_message("Your pb has been submitted for approval ✅", ephemeral=True)
         #await interaction.message.delete()
 
 
