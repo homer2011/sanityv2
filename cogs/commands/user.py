@@ -1673,15 +1673,17 @@ class User(commands.Cog):
                            description="Bingo - Update kcs gained during bingo for sheet")
     @commands.cooldown(1, 600, commands.BucketType.guild)
     @has_any_role(*rank_ids)
-    async def updatebingobosskc(self, ctx):
+    async def updatebingobosskc(self, ctx, competitionid : int=None):
         await ctx.defer()
 
+
         headers = {
-            'x-api-key': f'{apikey}',
+            'x-api-key': f'{api_key_wom}',
             'sanity discord bot': 'sanity discord bot'
         }
 
-        competitionId = 76441
+        if not competitionid:
+            competitionid = 98239
 
         description = ['abyssal_sire', 'alchemical_hydra', 'artio', 'callisto',
                        'calvarion', 'cerberus', 'chambers_of_xeric', 'chambers_of_xeric_challenge_mode',
@@ -1706,7 +1708,7 @@ class User(commands.Cog):
 
         for boss in description:
             test2 = requests.get(
-                f'https://api.wiseoldman.net/v2/competitions/{competitionId}/csv?table=participants&metric={boss}',
+                f'https://api.wiseoldman.net/v2/competitions/{competitionid}/csv?table=participants&metric={boss}',
                 headers=headers)  # remvoe headers
             byte_content = test2.content
             content = byte_content.decode()

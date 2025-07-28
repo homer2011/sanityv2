@@ -450,7 +450,7 @@ class submissionButtons(View):  # button for user
 
         for clannie_id in clannies_list:  ##calculate individual point gain
             # print(clannie_id)
-            if int(clannie_id) in trial_id_list:  # user is trial
+            if int(clannie_id) in trial_id_list and drop_name != "Diary Carry":  # user is trial
                 # print(f"{clannie_id} is a trial")
                 cap = 50
                 points = min(base_split_amount*trial_multiplier, cap)

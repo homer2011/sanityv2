@@ -834,6 +834,7 @@
     <script>
         console.log('Script started parsing.');
 
+
         // --- NProgress Configuration ---
         NProgress.configure({ showSpinner: false });
 
@@ -1093,6 +1094,8 @@
         async function fetchUsersData() {
             applyUsersFiltersAndSort();
         }
+
+
 
         function applyUsersFiltersAndSort() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -1499,14 +1502,8 @@
 
             dropsToDisplayOnPage.forEach(drop => {
                 const row = document.createElement('tr');
-
-                let statusClass = 'hover:bg-gray-800 transition-colors duration-150';
-                if (drop.status_name === 'Denied') {
-                    statusClass = 'bg-red-900/40 hover:bg-red-900/60 transition-colors duration-150';
-                } else if (drop.status_name === 'Submitted') {
-                    statusClass = 'bg-yellow-900/40 hover:bg-yellow-900/60 transition-colors duration-150';
-                }
-                row.className = statusClass;
+                // The old row-coloring logic is removed, we apply a standard hover effect to all rows.
+                row.className = 'hover:bg-gray-800 transition-colors duration-150';
 
                 const formattedValue = formatCurrency(drop.value);
                 const formattedReviewedDate = formatToDDMMYYYY(drop.reviewedDate);
@@ -1522,13 +1519,34 @@
                                         </a>` :
                                         '<span class="text-gray-500">-</span>';
 
+                // --- NEW: Logic to create a styled status badge ---
+                let statusHtml;
+                const statusName = drop.status_name || 'N/A';
+
+                switch (statusName) {
+                    case 'APPROVED':
+                        statusHtml = `<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500/20 text-green-400">Approved</span>`;
+                        break;
+                    case 'DENIED':
+                        statusHtml = `<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-500/20 text-red-400">Denied</span>`;
+                        break;
+                    case 'SUBMITTED':
+                         // Using yellow for "Submitted" makes its pending state more obvious.
+                        statusHtml = `<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-500/20 text-yellow-400">Submitted</span>`;
+                        break;
+                    default:
+                        statusHtml = `<span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-600/50 text-gray-300">${statusName}</span>`;
+                }
+                // --- End of new logic ---
+
+
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">${drop.Id || 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${drop.submitter || 'N/A'}</td>
                     <td class="px-6 py-4 text-sm text-gray-300 wrap-text">${drop.member_names || 'N/A'}</td>
                     <td class="px-6 py-4 text-sm text-gray-300 wrap-text">${drop.notes || 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${formattedValue}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${drop.status_name || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${statusHtml}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${imageUrlContent}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${formattedReviewedDate}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${drop.reviewer || 'N/A'}</td>
@@ -1950,7 +1968,7 @@
             // and the user object does not, this lookup is not possible. We will disable it for now.
             // const userEhb = allUserEhbData.find(e => e.userId === user.someId); // This needs a proper common ID.
             // AFTER (This finds the EHB record by checking if the user's name is in the list of associated RSNs)
-            const userEhb = allUserEhbData.find(e => e.associated_rsns && e.associated_rsns.includes(user.displayName));
+            const userEhb = allUserEhbData.find(e => e.displayName === user.displayName);
 
             //console.log("3. The entire allDiscordProfilesData array:", allDiscordProfilesData);
             //console.log("4. The result of the .find() operation:", discordProfile);
@@ -3301,6 +3319,9 @@
                     applyPersonalBestsFiltersAndSort();
                 });
             }
+
+
+
 
             document.querySelectorAll('#personalBestsTable thead th.sortable').forEach(header => {
                 header.addEventListener('click', (event) => {
