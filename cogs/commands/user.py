@@ -741,6 +741,27 @@ class User(commands.Cog):
         await ctx.message.delete()
         await ctx.send(embed=embed)
 
+    @commands.command()
+    @has_any_role(*rank_ids)
+    async def testrole(self, ctx):
+        """ test2"""
+        mycursor.execute(
+            f"select userId, displayName from sanity2.users where isActive = 1"
+        )
+        data = mycursor.fetchall()
+        activeUseridList = [user[0] for user in data]
+
+        sanity_role = ctx.guild.get_role(1240423750394970193)
+        members_in_disc = []
+        for member in sanity_role.members:
+            members_in_disc.append(member.id)
+
+        for memberId in activeUseridList:
+            if memberId not in members_in_disc:
+                await ctx.send(f"<@{memberId}>")
+
+
+
     @commands.command(aliases=["Points"])
     @has_any_role(*rank_ids)
     async def points(self, ctx, user : discord.Member = None):
@@ -1683,7 +1704,7 @@ class User(commands.Cog):
         }
 
         if not competitionid:
-            competitionid = 98239
+            competitionid = 102053
 
         description = ['abyssal_sire', 'alchemical_hydra', 'artio', 'callisto',
                        'calvarion', 'cerberus', 'chambers_of_xeric', 'chambers_of_xeric_challenge_mode',
@@ -1696,7 +1717,7 @@ class User(commands.Cog):
                        'the_corrupted_gauntlet', 'the_leviathan','the_royal_titans', 'the_whisperer',
                        'theatre_of_blood', 'theatre_of_blood_hard_mode', 'thermonuclear_smoke_devil',
                        'tombs_of_amascut_expert', 'tzkal_zuk', 'tztok_jad', 'vardorvis',
-                       'venenatis', 'vetion', 'vorkath', 'zulrah', 'araxxor','amoxliatl','the_hueycoatl']
+                       'venenatis', 'vetion', 'vorkath', 'zulrah', 'araxxor','amoxliatl','the_hueycoatl','yama']
 
         description.sort()
         # description = ['general_graardor']
@@ -1725,7 +1746,7 @@ class User(commands.Cog):
                 #print(item)
                 #print(item.split(","))
                 rsn = (item.split(",")[1])
-                kcGained = int(item.split(",")[4])
+                kcGained = int(item.split(",")[5])
 
                 if rsn not in player_boss_kills:
                     player_boss_kills[rsn] = {}
@@ -1746,7 +1767,7 @@ class User(commands.Cog):
             sheets_input.append(player_data)
 
         # print data to google sheet
-        sheetUrl = "https://docs.google.com/spreadsheets/d/1l3TyaoA_T3fRaKcJgZBItkudtOhPYL2Lf4KSIF-CcGM/edit?gid=484126960#gid=484126960"
+        sheetUrl = "https://docs.google.com/spreadsheets/d/14Bw1c_sD3Bl_nB-BIV-tAktzi8Fo_eki416t59WKylY/edit?gid=1066031678#gid=1066031678"
         tabName = "bingobosskc"
 
         try:

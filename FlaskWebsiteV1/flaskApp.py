@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 import mysql.connector
 from flask_cors import CORS  # To allow cross-origin requests from your HTML file
 import pathlib
@@ -284,6 +284,63 @@ def get_rsn_kc():
             connection.close()
             print("MySQL connection closed")
 
+
+@app.route('/api/auditlog', methods=['GET'])
+def get_auditlog():
+    """
+    Connects to the MySQL database, executes the user query,
+    and returns the data as JSON.
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)  # dictionary=True makes rows accessible by column name
+
+        query = """
+             SELECT
+                  a.id,
+                  u.displayName,
+                  CASE
+                    WHEN a.affectedUsers IS NULL THEN NULL
+                    WHEN a.affectedUsers NOT LIKE '%,%' THEN (
+                      SELECT
+                        displayName
+                      FROM
+                        sanity2.users
+                      WHERE
+                        userId = a.affectedUsers
+                    )
+                    ELSE (
+                      SELECT
+                        GROUP_CONCAT(displayName)
+                      FROM
+                        sanity2.users
+                      WHERE
+                        FIND_IN_SET(userId, a.affectedUsers) > 0
+                    )
+                  END AS affectedUserNames,
+                  a2.name,
+                  a.actionNote,
+                  a.actionDate
+                FROM
+                  sanity2.auditlogs a
+                  LEFT JOIN sanity2.users u ON u.userId = a.userId
+                  LEFT JOIN sanity2.auditactiontype a2 ON a2.id = a.actionType
+                ORDER BY
+                  a.actionDate DESC;
+        """
+        cursor.execute(query)
+        users_data = cursor.fetchall()
+        return jsonify(users_data)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
 
 @app.route('/api/discordmsgssentyearly', methods=['GET'])
 def get_yearly_discord_msgs():
@@ -612,25 +669,45 @@ def get_points_data_limited():
 
 @app.route('/api/points', methods=['GET'])
 def get_points_data():
-    """
-    Connects to the MySQL database, executes the points query,
-    and returns the data as JSON.
-    """
+    # 1. Get pagination parameters
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=100000, type=int)
+
+    page = max(1, page)
+    offset = (page - 1) * per_page
+
     connection = None
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
 
+        # 2. Main Query with LIMIT and OFFSET
+        # Note: Added p.userId and p.dropId just in case you need them later
         query = """
-                    SELECT p.Id, u.displayName, p.points, p.notes, s.messageUrl, p.`date` 
-                    FROM sanity2.pointtracker p 
-                    INNER JOIN sanity2.users u ON u.userId = p.userId 
-                    LEFT JOIN sanity2.submissions s ON s.Id = p.dropId 
-                    ORDER BY p.Id DESC
-                """
-        cursor.execute(query)
+            SELECT p.Id, u.displayName, p.points, p.notes, s.messageUrl, p.`date` 
+            FROM sanity2.pointtracker p 
+            INNER JOIN sanity2.users u ON u.userId = p.userId 
+            LEFT JOIN sanity2.submissions s ON s.Id = p.dropId 
+            ORDER BY p.Id DESC
+            LIMIT %s OFFSET %s
+        """
+
+        cursor.execute(query, (per_page, offset))
         points_data = cursor.fetchall()
-        return jsonify(points_data)
+
+        # 3. Get total count for the frontend
+        cursor.execute("SELECT COUNT(*) as total FROM sanity2.pointtracker")
+        total_count = cursor.fetchone()['total']
+
+        return jsonify({
+            "metadata": {
+                "total_points_records": total_count,
+                "page": page,
+                "per_page": per_page,
+                "total_pages": (total_count + per_page - 1) // per_page
+            },
+            "data": points_data
+        })
 
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -731,58 +808,76 @@ def get_drops_limited_data():
 
 @app.route('/api/drops', methods=['GET'])
 def get_drops_data():
-    """
-    Connects to the MySQL database, executes the drops query,
-    and returns the data as JSON.
-    """
+    # 1. Get pagination parameters
+    page = request.args.get('page', default=1, type=int)
+    per_page = request.args.get('per_page', default=100000, type=int)
+
+    page = max(1, page)
+    offset = (page - 1) * per_page
+
     connection = None
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
 
+        # 2. Main Query with LIMIT and OFFSET
         query = """
-            SELECT
-                s.Id,
-                submitter_u.displayName AS submitter,
-                GROUP_CONCAT(participant_u.displayName ORDER BY sp.id SEPARATOR ', ') AS member_names,
-                s.notes,
-                s.value,
-                s2.name AS status_name,
-                s.imageUrl,
-                s.reviewedDate,
-                reviewer_u.displayName AS reviewer,
-                s.bingo 
-            FROM
-                sanity2.submissions s
-            -- Replaced the old FIND_IN_SET join with these two efficient joins
-            LEFT JOIN
-                sanity2.submission_participants sp ON s.Id = sp.dropId
-            LEFT JOIN
-                sanity2.users participant_u ON sp.userId = participant_u.userId
-            -- The rest of your original joins
-            LEFT JOIN
-                sanity2.users submitter_u ON REPLACE(s.userId, '*', '') = submitter_u.userId
-            LEFT JOIN
-                sanity2.users reviewer_u ON REPLACE(s.reviewedBy, '*', '') = reviewer_u.userId
-            LEFT JOIN
-                sanity2.submissionstatus s2 ON s.status = s2.id
-            WHERE s.status IN (2,3,1,4)
-            GROUP BY
-                s.Id,
-                submitter_u.displayName,
-                s.notes,
-                s.value,
-                s.imageUrl,
-                s.reviewedDate,
-                s2.name,
-                reviewer_u.displayName,
-                s.bingo 
-            ORDER BY
-                Id DESC;
-        """
-        cursor.execute(query)
+                    SELECT
+                        s.Id,
+                        submitter_u.displayName AS submitter,
+                        GROUP_CONCAT(participant_u.displayName ORDER BY sp.id SEPARATOR ', ') AS member_names,
+                        s.notes,
+                        s.value,
+                        s2.name AS status_name,
+                        s.imageUrl,
+                        s.reviewedDate,
+                        reviewer_u.displayName AS reviewer,
+                        s.bingo 
+                    FROM
+                        sanity2.submissions s
+                    LEFT JOIN
+                        sanity2.submission_participants sp ON s.Id = sp.dropId
+                    LEFT JOIN
+                        sanity2.users participant_u ON sp.userId = participant_u.userId
+                    LEFT JOIN
+                        sanity2.users submitter_u ON REPLACE(s.userId, '*', '') = submitter_u.userId
+                    LEFT JOIN
+                        sanity2.users reviewer_u ON REPLACE(s.reviewedBy, '*', '') = reviewer_u.userId
+                    LEFT JOIN
+                        sanity2.submissionstatus s2 ON s.status = s2.id
+                    WHERE s.status IN (2,3,1,4)
+                    GROUP BY
+                        s.Id,
+                        submitter_u.displayName,
+                        s.notes,
+                        s.value,
+                        s2.name,
+                        s.imageUrl,
+                        s.reviewedDate,
+                        reviewer_u.displayName,
+                        s.bingo
+                    ORDER BY
+                        s.Id DESC
+                    LIMIT %s OFFSET %s;
+                """
+
+        cursor.execute(query, (per_page, offset))
         drops_data = cursor.fetchall()
-        return jsonify(drops_data)
+
+        # 3. Get total count for pagination metadata
+        count_query = "SELECT COUNT(*) as total FROM sanity2.submissions WHERE status IN (2,3,1,4)"
+        cursor.execute(count_query)
+        total_count = cursor.fetchone()['total']
+
+        return jsonify({
+            "metadata": {
+                "total_drops": total_count,
+                "page": page,
+                "per_page": per_page,
+                "total_pages": (total_count + per_page - 1) // per_page
+            },
+            "data": drops_data
+        })
 
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -791,7 +886,6 @@ def get_drops_data():
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
-            print("MySQL connection closed")
 
 
 @app.route('/api/personalbestslimited', methods=['GET'])
@@ -1437,5 +1531,5 @@ def index():
 
 
 """if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
-"""
+    app.run(debug=True)"""
+

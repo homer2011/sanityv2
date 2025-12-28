@@ -107,6 +107,17 @@
             display: table-cell;
         }
 
+        /* Hide all columns except 1 (Name), 2 (Total Points), 10 (3M Points), and the Monthly columns */
+        .hide-extra-columns th:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(10)):not(.monthly-points-col),
+        .hide-extra-columns td:not(:nth-child(1)):not(:nth-child(2)):not(:nth-child(10)):not(.monthly-points-col) {
+            display: none;
+        }
+
+        /* Ensure the monthly columns show up when their specific toggle is also active */
+        #usersTable.show-monthly-points .monthly-points-col {
+            display: table-cell !important;
+        }
+
     </style>
     <script>
         tailwind.config = {
@@ -149,6 +160,7 @@
                     <li><a href="#userprofile" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('userprofile')">User Profile</a></li>
                     <li><a href="#halloffame" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('halloffame')">Hall of Fame</a></li>
                     <li><a href="#pbhiscores" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('pbhiscores')">PB Hiscores</a></li>
+                    <li><a href="#auditlog" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('auditlog')">Audit Log</a></li>
                 </ul>
             </li>
         </ul>
@@ -825,6 +837,58 @@
                 </div>
             </div>
         </section>
+
+        <!-- Auditlog page content -->
+        <section id="auditlog-page" class="page-content hidden">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h1 class="text-3xl font-bold text-custom-blue-400 mb-6">Audit Log</h1>
+
+                <div class="mb-6">
+                    <input type="text" id="auditLogSearchInput" placeholder="Search table..."
+                           class="w-full p-3 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue-500 transition-all duration-200 bg-gray-700 text-white placeholder-gray-400">
+                </div>
+
+                <div class="overflow-x-auto table-container rounded-lg border border-gray-700 shadow-sm">
+                    <table id="auditLogTable" class="min-w-full divide-y divide-gray-700 bg-gray-900 text-gray-200">
+                        <thead class="bg-gray-700">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider rounded-tl-lg sortable" data-column="id" data-type="number">ID
+                                    <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                                    <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sortable" data-column="actionDate" data-type="date">Date
+                                    <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                                    <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sortable" data-column="displayName" data-type="string">Action By
+                                    <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                                    <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sortable" data-column="name" data-type="string">Action Type
+                                    <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                                    <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider sortable" data-column="affectedUserNames" data-type="string">Affected User(s)
+                                    <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                                    <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider rounded-tr-lg sortable" data-column="actionNote" data-type="string">Note
+                                    <svg class="asc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+                                    <svg class="desc-icon h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-700">
+                            <tr><td colspan="6" class="text-center py-4 text-gray-400">Loading data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                 <div id="auditLogPagination" class="flex justify-center mt-4 space-x-2"></div>
+            </div>
+        </section>
+
+
+
     </main>
 
     <footer class="bg-custom-blue-800 text-white text-center p-4 shadow-inner mt-8">
@@ -869,6 +933,7 @@
         let pointsTrendChartInstance = null;
         let currentPbView = 'recent';
 
+
         // --- Add these to your Global Data and API URLs section ---
         let allRankChangesData = [];
         let allDiscordProfilesData = [];
@@ -880,6 +945,7 @@
         let allBingoWinnersData = []; // ADD THIS LINE
         let isDataLoaded = false; // ADD THIS LINE
         let allMiscRolesData = []; // ADD THIS LINE
+        let allAuditLogData = [];
 
 
         // --- CORRECTED ORDER FOR API URLs ---
@@ -893,6 +959,7 @@
         const APPROVEDPBS_API_URL = `${API_BASE}/approvedpbs`;
         const BINGOWINNERS_API_URL = `${API_BASE}/bingowinners`;
         const DIARYTIMES_API_URL = `${API_BASE}/diarytimes`;
+        const AUDITLOG_API_URL = `${API_BASE}/auditlog`;
 
         // --- Add these new URLs to your consts section ---
         const RANKCHANGES_API_URL = `${API_BASE}/rankChanges`;
@@ -926,6 +993,12 @@
         let pointsCurrentSortDirection = 'desc';
         let pointsCurrentPage = 1;
         const pointsItemsPerPage = 200;
+
+        // --- Sorting State for Audit Log Table ---
+        let auditLogCurrentSortColumn = 'id';
+        let auditLogCurrentSortDirection = 'desc';
+        let auditLogCurrentPage = 1;
+        const auditLogItemsPerPage = 200;
 
 
         // --- Utility Function for Date Formatting ---
@@ -998,6 +1071,20 @@
             return value.toLocaleString('en-US');
         }
 
+        function formatToDateTime(dateString) {
+            if (!dateString) return 'N/A';
+            const dateObj = new Date(dateString);
+            if (isNaN(dateObj.getTime())) return 'N/A';
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            const hours = String(dateObj.getHours()).padStart(2, '0');
+            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+            return `${day}.${month}.${year} ${hours}:${minutes}`;
+        }
+
+        // --- Utility Function for generating visible page numbers ---
+
         // --- Utility Function for generating visible page numbers ---
         function generatePageNumbers(currentPage, totalPages, maxVisiblePages) {
             const pages = new Set();
@@ -1049,7 +1136,7 @@
                     usersRes, dropsRes, pbsRes, pointsRes, diaryTimesRes,
                     rankChangesRes, discordProfilesRes, userEhbRes,
                     discordActivityRes, discordActivityMonthlyRes, discordActivityYearlyRes,
-                    bingoRes, miscRolesRes
+                    bingoRes, miscRolesRes, auditLogRes
                 ] = await Promise.all([
                     fetch(USERS_API_URL),
                     fetch(DROPS_API_URL),
@@ -1063,13 +1150,17 @@
                     fetch(DISCORDMSGSSENT_MONTHLY_API_URL),
                     fetch(DISCORDMSGSSENT_YEARLY_API_URL),
                     fetch(BINGOWINNERS_API_URL),
-                    fetch(MISCROLES_API_URL)
+                    fetch(MISCROLES_API_URL),
+                    fetch(AUDITLOG_API_URL)
                 ]);
 
                 allUsersData = await usersRes.json();
-                allDropsData = await dropsRes.json();
+
+                const dropsJson = await dropsRes.json();
+                allDropsData = dropsJson.data || [];
                 allPersonalBestsData = await pbsRes.json();
-                allPointsData = await pointsRes.json();
+                const pointsJson = await pointsRes.json();
+                allPointsData = pointsJson.data || [];
                 allDiaryTimesData = await diaryTimesRes.json();
                 allRankChangesData = await rankChangesRes.json();
                 allDiscordProfilesData = await discordProfilesRes.json();
@@ -1079,6 +1170,7 @@
                 allDiscordActivityYearlyData = await discordActivityYearlyRes.json();
                 allBingoWinnersData = await bingoRes.json();
                 allMiscRolesData = await miscRolesRes.json();
+                allAuditLogData = await auditLogRes.json();
 
                 isDataLoaded = true;
                 console.log("All data preloaded successfully.");
@@ -1787,6 +1879,130 @@
                 if (pointsCurrentPage < totalPages) {
                     pointsCurrentPage++;
                     renderPointsTable(filteredAndSortedPoints);
+                }
+            };
+            paginationContainer.appendChild(nextButton);
+        }
+
+
+        // --- Audit Log Table Functions ---
+        async function fetchAuditLogData() {
+            applyAuditLogFiltersAndSort();
+        }
+
+        function applyAuditLogFiltersAndSort() {
+            const searchTerm = document.getElementById('auditLogSearchInput').value.toLowerCase();
+            let filteredData = allAuditLogData.filter(log => {
+                return Object.values(log).some(value =>
+                    String(value).toLowerCase().includes(searchTerm)
+                );
+            });
+            sortData(filteredData, auditLogCurrentSortColumn, auditLogCurrentSortDirection, '#auditLogTable');
+            renderAuditLogTable(filteredData);
+        }
+
+        function renderAuditLogTable(logsToDisplay) {
+            const tableBody = document.querySelector('#auditLogTable tbody');
+            tableBody.innerHTML = '';
+
+            if (logsToDisplay.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-400">No matching logs found.</td></tr>`;
+                return;
+            }
+
+            const startIndex = (auditLogCurrentPage - 1) * auditLogItemsPerPage;
+            const endIndex = startIndex + auditLogItemsPerPage;
+            const logsToDisplayOnPage = logsToDisplay.slice(startIndex, endIndex);
+
+            logsToDisplayOnPage.forEach(log => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-800 transition-colors duration-150';
+
+                const formattedDate = formatToDateTime(log.actionDate);
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">${log.id || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${formattedDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${log.displayName || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${log.name || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${log.affectedUserNames || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-300 wrap-text max-w-md">${log.actionNote || 'N/A'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            document.querySelectorAll('#auditLogTable thead th.sortable').forEach(header => {
+                header.classList.remove('asc', 'desc');
+                if (header.dataset.column === auditLogCurrentSortColumn) {
+                    header.classList.add(auditLogCurrentSortDirection);
+                }
+            });
+
+            renderAuditLogPagination(logsToDisplay.length);
+        }
+
+        function sortAuditLogTable(column) {
+            auditLogCurrentPage = 1;
+            if (auditLogCurrentSortColumn === column) {
+                auditLogCurrentSortDirection = (auditLogCurrentSortDirection === 'asc') ? 'desc' : 'asc';
+            } else {
+                auditLogCurrentSortColumn = column;
+                auditLogCurrentSortDirection = 'asc';
+            }
+            applyAuditLogFiltersAndSort();
+        }
+
+        function renderAuditLogPagination(totalItems) {
+            const paginationContainer = document.getElementById('auditLogPagination');
+            paginationContainer.innerHTML = '';
+
+            const totalPages = Math.ceil(totalItems / auditLogItemsPerPage);
+            if (totalPages <= 1) return;
+
+            const maxVisibleButtons = 5;
+            let startPage = Math.max(1, auditLogCurrentPage - Math.floor(maxVisibleButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
+            if (endPage - startPage + 1 < maxVisibleButtons) {
+                startPage = Math.max(1, endPage - maxVisibleButtons + 1);
+            }
+
+            // Previous Button
+            const prevButton = document.createElement('button');
+            prevButton.textContent = 'Previous';
+            prevButton.className = 'pagination-button';
+            prevButton.disabled = auditLogCurrentPage === 1;
+            prevButton.onclick = () => {
+                if (auditLogCurrentPage > 1) {
+                    auditLogCurrentPage--;
+                    applyAuditLogFiltersAndSort();
+                }
+            };
+            paginationContainer.appendChild(prevButton);
+
+            // Page Number Buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = 'pagination-button';
+                if (i === auditLogCurrentPage) {
+                    pageButton.classList.add('active');
+                }
+                pageButton.onclick = () => {
+                    auditLogCurrentPage = i;
+                    applyAuditLogFiltersAndSort();
+                };
+                paginationContainer.appendChild(pageButton);
+            }
+
+            // Next Button
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Next';
+            nextButton.className = 'pagination-button';
+            nextButton.disabled = auditLogCurrentPage === totalPages;
+            nextButton.onclick = () => {
+                if (auditLogCurrentPage < totalPages) {
+                    auditLogCurrentPage++;
+                    applyAuditLogFiltersAndSort();
                 }
             };
             paginationContainer.appendChild(nextButton);
@@ -3277,6 +3493,8 @@
                     await fetchPbHiscoresData();
                 } else if (pageId === 'diary') {
                     fetchDiaryTimesData();
+                } else if (pageId === 'auditlog') {
+                    fetchAuditLogData();
                 }
             } else {
                 console.warn(`Page with ID ${pageId}-page not found. Displaying home page.`);
@@ -3292,10 +3510,23 @@
 
             // --- 🔽 EVENT LISTENER FOR THE NEW CHECKBOX 🔽 ---
             const toggleCheckbox = document.getElementById('togglePointColumns');
+
             if (toggleCheckbox) {
                 toggleCheckbox.addEventListener('change', () => {
                     const usersTable = document.getElementById('usersTable');
+
+                    // You can keep this line as it handles both toggles in one go
                     usersTable.classList.toggle('show-monthly-points', toggleCheckbox.checked);
+                    usersTable.classList.toggle('hide-extra-columns', toggleCheckbox.checked);
+
+                    // Or if you prefer the if/else structure:
+                    if (toggleCheckbox.checked) {
+                        usersTable.classList.add('hide-extra-columns');
+                        usersTable.classList.add('show-monthly-points');
+                    } else {
+                        usersTable.classList.remove('hide-extra-columns');
+                        usersTable.classList.remove('show-monthly-points');
+                    }
                 });
             }
 
@@ -3368,6 +3599,20 @@
                     const column = headerElement.dataset.column;
                     const type = headerElement.dataset.type;
                     sortPointsTable(column, type);
+                });
+            });
+
+            // Attach event listeners for Audit Log search and sort
+            const auditLogSearchInput = document.getElementById('auditLogSearchInput');
+            if (auditLogSearchInput) {
+                auditLogSearchInput.addEventListener('keyup', () => {
+                    auditLogCurrentPage = 1;
+                    applyAuditLogFiltersAndSort();
+                });
+            }
+            document.querySelectorAll('#auditLogTable thead th.sortable').forEach(header => {
+                header.addEventListener('click', () => {
+                    sortAuditLogTable(header.dataset.column);
                 });
             });
 

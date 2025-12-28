@@ -721,7 +721,7 @@ async def before():
 checkIsInactiveList.start()
 
 
-@tasks.loop(hours=1) #time=[time(hour=1, minute=49)]
+@tasks.loop(time=[time(hour=1, minute=49)])
 async def updateUserStatsTable():
     print("started UpdateUserStats tasks")
 
