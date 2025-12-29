@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanity Bingo Builder</title>
+    <link rel="icon" type="image/x-icon" href="/favico.ico">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #122a3d;
+            color: #e2e8f0;
+        }
+        .bingo-grid-builder {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+        }
+        .tile-button {
+            aspect-ratio: 1 / 1;
+            background-color: #1a364d;
+            border: 2px dashed #224b6d;
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Changed for better layout */
+            align-items: center;
+            text-align: center;
+            padding: 0.5rem;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .tile-button:hover {
+            border-color: #00a3d1;
+            background-color: #224b6d;
+        }
+        .tile-button.filled {
+            border-style: solid;
+            border-color: #2a608d;
+        }
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal-content {
+            background-color: #1a364d;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        /* Custom Scrollbar for Modal */
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-track { background: #122a3d; border-radius: 10px; }
+        .modal-content::-webkit-scrollbar-thumb { background: #224b6d; border-radius: 10px; }
+        .modal-content::-webkit-scrollbar-thumb:hover { background: #2a608d; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-custom-blue-800 text-white shadow-lg">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold">
+                <a href="#" class="hover:text-custom-blue-300 transition-colors duration-200">Sanity Bingo Builder</a>
+            </div>
+            <div>
+                <a href="/bingo.html" id="navViewBoard" class="nav-link px-4 py-2 hover:bg-custom-blue-700 rounded-md transition-colors">View Live Board</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div id="bingoBuilderForm" class="space-y-8">
+            <!-- Event Selection -->
+            <fieldset class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <legend class="text-2xl font-bold text-custom-blue-400 mb-4 px-2">Select or Create Event</legend>
+                <div class="flex items-center space-x-4">
+                    <select id="eventSelector" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white">
+                        <option value="">Loading events...</option>
+                    </select>
+                    <button id="createNewEventBtn" type="button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors whitespace-nowrap">Create New Event</button>
+                </div>
+            </fieldset>
+
+            <!-- Auto-generator -->
+            <fieldset class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <legend class="text-2xl font-bold text-custom-blue-400 mb-4 px-2">Auto-Generate Board</legend>
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Total Board Hours</label>
+                        <input type="number" id="totalHours" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white" value="500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Max Drops/Tile</label>
+                        <input type="number" id="maxUniquesCap" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white" value="15">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Unique (Dups) Wt</label>
+                        <input type="number" id="uniqueWeight" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white" value="8">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Unique (No Dups) Wt</label>
+                        <input type="number" id="noDupUniqueWeight" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white" value="4">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">KC Tile Wt</label>
+                        <input type="number" id="kcWeight" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white" value="3">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Points Tile Wt</label>
+                        <input type="number" id="pointsWeight" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white" value="1">
+                    </div>
+                </div>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Enabled Bosses</label>
+                        <div id="boss-checklist" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-900 rounded-md">
+                            <p class="text-gray-400">Loading bosses...</p>
+                        </div>
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Must-Include Bosses</label>
+                        <div id="must-include-checklist" class="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-900 rounded-md">
+                            <p class="text-gray-400">Loading bosses...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button id="autoGenerateBtn" type="button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Generate</button>
+                </div>
+            </fieldset>
+
+            <!-- Bingo Board Builder -->
+            <fieldset class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <legend class="text-2xl font-bold text-custom-blue-400 mb-4 px-2">Board Builder</legend>
+                <div id="bingoBoardBuilderGrid" class="bingo-grid-builder">
+                    <!-- Tile buttons will be generated by JS -->
+                </div>
+            </fieldset>
+
+            <!-- Actions -->
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="saveBoardBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors shadow-lg">
+                    Save Bingo Board
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="tileModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h2 id="modalTitle" class="text-2xl font-bold text-custom-blue-300 mb-6">Edit Tile #1</h2>
+            <form id="tileForm" class="space-y-4">
+                <input type="hidden" id="tileIndex">
+                <div>
+                    <label for="taskName" class="block text-sm font-medium text-gray-300 mb-1">Task Name</label>
+                    <input type="text" id="taskName" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="e.g., Obtain a Twisted Bow">
+                </div>
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-300 mb-1">Description / Sub-text</label>
+                    <textarea id="description" rows="2" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="Extra details shown on hover"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="tileType" class="block text-sm font-medium text-gray-300 mb-1">Tile Type</label>
+                        <select id="tileType" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white">
+                            <option value="Unique">Unique Item Count</option>
+                            <option value="KC">Kill Count</option>
+                            <option value="Points">Raid/Item Points</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="requirement" class="block text-sm font-medium text-gray-300 mb-1">Requirement (Count/KC/Points)</label>
+                        <input type="number" id="requirement" min="1" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="e.g., 1 or 100">
+                    </div>
+                </div>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="points" class="block text-sm font-medium text-gray-300 mb-1">Tile Completion Points</label>
+                        <input type="number" id="points" min="0" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="e.g., 25">
+                    </div>
+                    <div>
+                        <label for="imageUrl" class="block text-sm font-medium text-gray-300 mb-1">Image URL</label>
+                        <input type="text" id="imageUrl" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="https://...">
+                    </div>
+                </div>
+                <div>
+                    <label for="items" class="block text-sm font-medium text-gray-300 mb-1">Associated Items (for 'Unique'/'Points' types)</label>
+                    <textarea id="items" rows="3" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="Comma-separated list, e.g., twisted bow, scythe of vitur"></textarea>
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="cancelBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
+                    <button type="submit" id="saveTileBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Save Tile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="eventModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold text-custom-blue-300 mb-6">Create New Bingo Event</h2>
+            <form id="eventForm" class="space-y-4">
+                <div>
+                    <label for="newEventName" class="block text-sm font-medium text-gray-300 mb-1">Event Name</label>
+                    <input type="text" id="newEventName" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="e.g., Winter Bingo 2026">
+                </div>
+                <div>
+                    <label for="newStartDate" class="block text-sm font-medium text-gray-300 mb-1">Start Date</label>
+                    <input type="date" id="newStartDate" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white">
+                </div>
+                <div>
+                    <label for="newEndDate" class="block text-sm font-medium text-gray-300 mb-1">End Date</label>
+                    <input type="date" id="newEndDate" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white">
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="cancelEventBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md">Cancel</button>
+                    <button type="submit" id="saveEventBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-custom-blue-800 text-white text-center p-4 shadow-inner mt-8">
+        <p>&copy; 2025 Sanity OSRS clan</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_BASE = 'https://sanityosrs.com/api';
+            const EVENTS_API_URL = `${API_BASE}/bingo/events`;
+            const BOARD_DETAILS_API_URL = `${API_BASE}/bingo/board_details`;
+            const CREATE_EVENT_API_URL = `${API_BASE}/bingo/create_event`;
+            const BOSS_ITEMS_API_URL = `${API_BASE}/bingo/bossitems`;
+            const BOSS_EHB_API_URL = `${API_BASE}/bingo/bossehb`;
+            const RAID_ITEMS_API_URL = `${API_BASE}/bingo/raiditemvalues`;
+            const UPDATE_BOARD_API_URL = `${API_BASE}/bingo/update_board`;
+
+            let boardState = Array(25).fill(null).map(() => ({ taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' }));
+            let bossItemData = [];
+            let bossEhbData = [];
+            let raidItemData = [];
+
+            const grid = document.getElementById('bingoBoardBuilderGrid');
+            const eventSelector = document.getElementById('eventSelector');
+            const tileModal = document.getElementById('tileModal');
+            const eventModal = document.getElementById('eventModal');
+            const tileForm = document.getElementById('tileForm');
+            const tileIndexInput = document.getElementById('tileIndex');
+
+            const renderGrid = () => {
+                grid.innerHTML = '';
+                boardState.forEach((tile, index) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    const tileContent = tile || {};
+                    button.className = `tile-button ${tileContent.taskName ? 'filled' : ''}`;
+                    button.dataset.index = index;
+                    button.innerHTML = `
+                        <div class="flex-grow flex flex-col justify-center items-center w-full">
+                            <span class="font-bold text-lg">${index + 1}</span>
+                            <span class="text-sm text-gray-300 w-full break-words">${tileContent.taskName || 'Empty Tile'}</span>
+                        </div>
+                        <span class="text-xs font-bold text-yellow-400">${tileContent.points ? `${tileContent.points} pts` : ''}</span>
+                    `;
+                    button.addEventListener('click', () => openModal(index));
+                    grid.appendChild(button);
+                });
+            };
+
+            const openModal = (index) => {
+                const tile = boardState[index] || {};
+                tileIndexInput.value = index;
+                document.getElementById('modalTitle').textContent = `Edit Tile #${index + 1}`;
+
+                document.getElementById('taskName').value = tile.taskName || '';
+                document.getElementById('description').value = tile.description || '';
+                document.getElementById('tileType').value = tile.tileType || 'Unique';
+                document.getElementById('requirement').value = tile.requirement || 1;
+                document.getElementById('points').value = tile.points || 0;
+                document.getElementById('imageUrl').value = tile.imageUrl || '';
+                document.getElementById('items').value = tile.items || '';
+
+                tileModal.classList.remove('hidden');
+            };
+
+            const closeModal = () => tileModal.classList.add('hidden');
+
+            const saveTile = (e) => {
+                e.preventDefault();
+                const index = parseInt(tileIndexInput.value, 10);
+                if (isNaN(index)) return;
+
+                boardState[index] = {
+                    taskName: document.getElementById('taskName').value,
+                    description: document.getElementById('description').value,
+                    tileType: document.getElementById('tileType').value,
+                    requirement: parseInt(document.getElementById('requirement').value, 10) || 1,
+                    points: parseInt(document.getElementById('points').value, 10) || 0,
+                    imageUrl: document.getElementById('imageUrl').value,
+                    items: document.getElementById('items').value
+                };
+
+                renderGrid();
+                closeModal();
+            };
+
+            const fetchEvents = async () => {
+                try {
+                    const response = await fetch(EVENTS_API_URL);
+                    const events = await response.json();
+                    eventSelector.innerHTML = '<option value="">Select an Event to Edit</option>';
+                    events.forEach(event => {
+                        const option = document.createElement('option');
+                        option.value = event.id;
+                        option.textContent = event.name;
+                        eventSelector.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Failed to fetch events:', error);
+                    eventSelector.innerHTML = '<option value="">Could not load events</option>';
+                }
+            };
+
+            const loadBoardForEvent = async (eventId) => {
+                 if (!eventId) {
+                    boardState = Array(25).fill(null).map(() => ({ taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' }));
+                    renderGrid();
+                    return;
+                }
+                try {
+                    const response = await fetch(`${BOARD_DETAILS_API_URL}/${eventId}`);
+                    if (!response.ok) throw new Error(`Failed to fetch board for event ${eventId}`);
+                    const tiles = await response.json();
+
+                    boardState = Array(25).fill(null);
+
+                    tiles.forEach(tile => {
+                        const index = tile.position - 1;
+                        if (index >= 0 && index < 25) {
+                            boardState[index] = {
+                                taskName: tile.task_name,
+                                description: tile.description,
+                                tileType: tile.tileType,
+                                requirement: tile.dropOrPointReq,
+                                points: tile.points,
+                                imageUrl: tile.image_url,
+                                items: Array.isArray(tile.items) ? tile.items.join(', ') : ''
+                            };
+                        }
+                    });
+                    renderGrid();
+
+                } catch (error) {
+                    console.error(error);
+                    alert('Could not load board for the selected event. It might be a new event with no board yet.');
+                    boardState = Array(25).fill(null).map(() => ({ taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' }));
+                    renderGrid();
+                }
+            };
+
+            const saveBoard = async () => {
+                const eventId = eventSelector.value;
+                if (!eventId) {
+                    alert('Please select an event first.');
+                    return;
+                }
+
+                const payload = {
+                    eventId: eventId,
+                    tiles: boardState.filter(t => t && t.taskName)
+                };
+
+                try {
+                    const response = await fetch(UPDATE_BOARD_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) {
+                         const errData = await response.json();
+                         throw new Error(errData.error || 'Failed to save board');
+                    }
+                    const result = await response.json();
+                    alert(result.message);
+                } catch (error) {
+                    console.error(error);
+                    alert(`Error saving board: ${error.message}`);
+                }
+            };
+
+            const fetchAllGeneratorData = async () => {
+                try {
+                    const [bossItemsRes, bossEhbRes, raidItemsRes] = await Promise.all([
+                        fetch(BOSS_ITEMS_API_URL),
+                        fetch(BOSS_EHB_API_URL),
+                        fetch(RAID_ITEMS_API_URL)
+                    ]);
+                    bossItemData = await bossItemsRes.json();
+                    bossEhbData = await bossEhbRes.json();
+                    raidItemData = await raidItemsRes.json();
+
+                    const bossChecklist = document.getElementById('boss-checklist');
+                    const mustIncludeChecklist = document.getElementById('must-include-checklist');
+                    const bosses = [...new Set(bossItemData.map(item => item.bossName))];
+
+                    bossChecklist.innerHTML = '';
+                    mustIncludeChecklist.innerHTML = '';
+
+                    bosses.forEach(boss => {
+                        if (!boss) return;
+                        const enabledLabel = document.createElement('label');
+                        enabledLabel.className = 'flex items-center space-x-2 text-sm';
+                        enabledLabel.innerHTML = `<input type="checkbox" class="boss-checkbox bg-gray-700 rounded" value="${boss}" checked><span>${boss}</span>`;
+                        bossChecklist.appendChild(enabledLabel);
+
+                        const mustIncludeLabel = document.createElement('label');
+                        mustIncludeLabel.className = 'flex items-center space-x-2 text-sm';
+                        mustIncludeLabel.innerHTML = `<input type="checkbox" class="must-include-checkbox bg-gray-700 rounded" value="${boss}"><span>${boss}</span>`;
+                        mustIncludeChecklist.appendChild(mustIncludeLabel);
+                    });
+                } catch (error) {
+                    console.error('Failed to fetch all generator data:', error);
+                    document.getElementById('boss-checklist').innerHTML = '<p class="text-red-500">Could not load boss list.</p>';
+                }
+            };
+
+            const autoGenerateBoard = () => {
+                const totalHoursTarget = parseInt(document.getElementById('totalHours').value, 10) || 500;
+                const maxUniquesCap = parseInt(document.getElementById('maxUniquesCap').value, 10) || 15;
+                const weights = {
+                    UniqueDups: parseInt(document.getElementById('uniqueWeight').value, 10),
+                    UniqueNoDups: parseInt(document.getElementById('noDupUniqueWeight').value, 10),
+                    KC: parseInt(document.getElementById('kcWeight').value, 10),
+                    Points: parseInt(document.getElementById('pointsWeight').value, 10),
+                };
+                const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+                const enabledBosses = new Set(Array.from(document.querySelectorAll('.boss-checkbox:checked')).map(cb => cb.value));
+                const mustIncludeBosses = new Set(Array.from(document.querySelectorAll('.must-include-checkbox:checked')).map(cb => cb.value));
+
+                if (enabledBosses.size === 0) {
+                    alert("Please enable at least one boss.");
+                    return;
+                }
+
+                const minTileHours = totalHoursTarget / 100;
+                const maxTileHours = totalHoursTarget / 12.5;
+
+                const uniqueDupsPool = [], uniqueNoDupsPool = [], kcTilePool = [], pointsTilePool = [];
+
+                const itemsByBoss = bossItemData.reduce((acc, item) => {
+                    if (enabledBosses.has(item.bossName)) {
+                        if (!acc[item.bossName]) acc[item.bossName] = { items: [], boss: item.bossName };
+                        acc[item.bossName].items.push(item);
+                    }
+                    return acc;
+                }, {});
+
+                for (const bossName in itemsByBoss) {
+                    const { items } = itemsByBoss[bossName];
+                    const sortedItems = [...items].sort((a, b) => a.hoursToGetDrop - b.hoursToGetDrop);
+                    for (let i = 2; i <= sortedItems.length; i++) {
+                        const itemsForTile = sortedItems.slice(0, i);
+                        const totalHoursForTile = itemsForTile.reduce((sum, item) => sum + item.hoursToGetDrop, 0);
+                        if (totalHoursForTile >= minTileHours && totalHoursForTile <= maxTileHours) {
+                            uniqueNoDupsPool.push({ boss: bossName, taskName: `Get ${i} of ${items.length} uniques from ${bossName}`, description: `No duplicates.`, tileType: 'Unique', requirement: i, points: Math.round(totalHoursForTile), items: items.map(it => it.item).join(', '), hours: totalHoursForTile });
+                        }
+                    }
+
+                    const totalHourlyDropRate = items.reduce((sum, item) => sum + (item.hoursToGetDrop ? 1 / item.hoursToGetDrop : 0), 0);
+                    if (totalHourlyDropRate === 0) continue;
+                    const avgHoursPerAnyUnique = 1 / totalHourlyDropRate;
+
+                    for (let i = 0; i < 3; i++) {
+                        const targetHours = minTileHours + (maxTileHours - minTileHours) * Math.random();
+                        let numUniques = Math.ceil(targetHours / avgHoursPerAnyUnique);
+                        numUniques = Math.min(numUniques, maxUniquesCap);
+                        if (numUniques > 1) {
+                            uniqueDupsPool.push({ boss: bossName, taskName: `Get ${numUniques} unique drops from ${bossName}`, description: `Duplicates are allowed.`, tileType: 'Unique', requirement: numUniques, points: Math.round(targetHours), items: items.map(it => it.item).join(', '), hours: targetHours });
+                        }
+                    }
+                }
+
+                bossEhbData.forEach(boss => {
+                    const bossName = boss.boss.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    if (enabledBosses.has(bossName) && boss.ehb > 0) {
+                        for (let i = 0; i < 3; i++) {
+                            const targetHours = minTileHours + (maxTileHours - minTileHours) * Math.random();
+                            const requiredKc = Math.round(targetHours * boss.ehb);
+                            if (requiredKc > 5) {
+                                kcTilePool.push({ boss: bossName, taskName: `${requiredKc} ${bossName} KC`, description: `Kill ${bossName} ${requiredKc} times.`, tileType: 'KC', requirement: requiredKc, points: Math.round(targetHours), items: bossName, hours: targetHours });
+                            }
+                        }
+                    }
+                });
+
+                const pointsByRaid = raidItemData.reduce((acc, item) => {
+                    if (!acc[item.boss]) acc[item.boss] = [];
+                    acc[item.boss].push(item);
+                    return acc;
+                }, {});
+
+                for (const raidName in pointsByRaid) {
+                    const avgPointsPerHour = 1;
+                    for (let i = 0; i < 3; i++) {
+                        const targetHours = minTileHours + (maxTileHours - minTileHours) * Math.random();
+                        const requiredPoints = Math.round(targetHours * avgPointsPerHour);
+                        if(requiredPoints > 0) {
+                            pointsTilePool.push({ boss: raidName, taskName: `Get ${requiredPoints} points from ${raidName}`, description: `Get points from any unique drop in ${raidName}.`, tileType: 'Points', requirement: requiredPoints, points: Math.round(targetHours), items: pointsByRaid[raidName].map(it => it.item).join(', '), hours: targetHours });
+                        }
+                    }
+                }
+
+                const newBoard = [];
+                const usedBosses = new Set();
+                const allPools = { UniqueDups: uniqueDupsPool, UniqueNoDups: uniqueNoDupsPool, KC: kcTilePool, Points: pointsTilePool };
+                Object.values(allPools).forEach(pool => pool.sort(() => 0.5 - Math.random()));
+
+                mustIncludeBosses.forEach(bossName => {
+                    if (usedBosses.has(bossName)) return;
+                    for (const pool of Object.values(allPools)) {
+                        const tileIndex = pool.findIndex(tile => tile.boss === bossName);
+                        if (tileIndex !== -1) {
+                            newBoard.push(pool.splice(tileIndex, 1)[0]);
+                            usedBosses.add(bossName);
+                            break;
+                        }
+                    }
+                });
+
+                const weightedPool = [];
+                for (const type in weights) {
+                    for(let i = 0; i < weights[type]; i++) {
+                        weightedPool.push(type);
+                    }
+                }
+                weightedPool.sort(() => 0.5 - Math.random());
+
+                while (newBoard.length < 25 && weightedPool.length > 0) {
+                    const randomType = weightedPool.pop();
+                    const pool = allPools[randomType];
+                    if (!pool || pool.length === 0) continue;
+
+                    let foundTile = false;
+                    for (let i = 0; i < pool.length; i++) {
+                        const tile = pool[i];
+                        if (!usedBosses.has(tile.boss)) {
+                            newBoard.push(pool.splice(i, 1)[0]);
+                            usedBosses.add(tile.boss);
+                            foundTile = true;
+                            break;
+                        }
+                    }
+                }
+
+                boardState = newBoard.map(tile => {
+                    const { hours, boss, ...finalTile } = tile;
+                    return finalTile;
+                });
+
+                while (boardState.length < 25) {
+                    boardState.push({ taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' });
+                }
+
+                renderGrid();
+                const finalHours = newBoard.reduce((sum, tile) => sum + tile.hours, 0);
+                alert(`Generated a board with ${newBoard.length} tiles, totaling approximately ${finalHours.toFixed(2)} hours.`);
+            };
+
+            const openEventModal = () => eventModal.classList.remove('hidden');
+            const closeEventModal = () => eventModal.classList.add('hidden');
+            const saveEvent = async (e) => {
+                e.preventDefault();
+                const newEvent = {
+                    name: document.getElementById('newEventName').value,
+                    start_date: document.getElementById('newStartDate').value,
+                    end_date: document.getElementById('newEndDate').value,
+                };
+                try {
+                    const response = await fetch(CREATE_EVENT_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newEvent)
+                    });
+                    if (!response.ok) throw new Error('Failed to create event');
+                    const result = await response.json();
+                    await fetchEvents();
+                    eventSelector.value = result.id;
+                    eventSelector.dispatchEvent(new Event('change'));
+                    closeEventModal();
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            };
+
+            // --- Event Listeners ---
+            eventSelector.addEventListener('change', (e) => loadBoardForEvent(e.target.value));
+            tileForm.addEventListener('submit', saveTile);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.getElementById('createNewEventBtn').addEventListener('click', openEventModal);
+            document.getElementById('eventForm').addEventListener('submit', saveEvent);
+            document.getElementById('cancelEventBtn').addEventListener('click', closeEventModal);
+            document.getElementById('autoGenerateBtn').addEventListener('click', autoGenerateBoard);
+            document.getElementById('saveBoardBtn').addEventListener('click', saveBoard);
+
+            // --- Initial Load ---
+            fetchAllGeneratorData();
+            fetchEvents();
+            renderGrid();
+        });
+    </script>
+</body>
+</html>
