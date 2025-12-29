@@ -1,6 +1,6 @@
 --
 -- Table structure for table `auditactiontype`
---
+--a
 
 DROP TABLE IF EXISTS `auditactiontype`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
