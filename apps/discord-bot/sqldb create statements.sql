@@ -1,22 +1,10 @@
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
 --
 -- Table structure for table `auditactiontype`
 --
 
 DROP TABLE IF EXISTS `auditactiontype`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `auditactiontype` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8 DEFAULT NULL,
@@ -30,7 +18,7 @@ CREATE TABLE `auditactiontype` (
 
 DROP TABLE IF EXISTS `auditlogs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `auditlogs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` bigint(20) NOT NULL,
@@ -54,7 +42,7 @@ CREATE TABLE `auditlogs` (
 
 DROP TABLE IF EXISTS `bingoWinners`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bingoWinners` (
   `bingoId` int(11) NOT NULL AUTO_INCREMENT,
   `bingoName` varchar(100) DEFAULT NULL,
@@ -70,7 +58,7 @@ CREATE TABLE `bingoWinners` (
 
 DROP TABLE IF EXISTS `bingoboard`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bingoboard` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sheetsUrl` varchar(200) DEFAULT NULL,
@@ -86,7 +74,7 @@ CREATE TABLE `bingoboard` (
 
 DROP TABLE IF EXISTS `bingobosskc`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bingobosskc` (
   `RSN` varchar(35) NOT NULL,
   `abyssal_sire` int(11) DEFAULT '0',
@@ -161,7 +149,7 @@ CREATE TABLE `bingobosskc` (
 
 DROP TABLE IF EXISTS `bingodrops`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bingodrops` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(80) NOT NULL,
@@ -176,7 +164,7 @@ CREATE TABLE `bingodrops` (
 
 DROP TABLE IF EXISTS `bosses`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bosses` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8 NOT NULL,
@@ -192,7 +180,7 @@ CREATE TABLE `bosses` (
 
 DROP TABLE IF EXISTS `channels`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `channels` (
   `id` bigint(20) NOT NULL,
   `name` varchar(60) CHARACTER SET utf8 NOT NULL,
@@ -206,7 +194,7 @@ CREATE TABLE `channels` (
 
 DROP TABLE IF EXISTS `deathTable`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `deathTable` (
   `msgID` varchar(45) DEFAULT NULL,
   `time` varchar(45) DEFAULT NULL,
@@ -220,7 +208,7 @@ CREATE TABLE `deathTable` (
 
 DROP TABLE IF EXISTS `diaryrewards`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `diaryrewards` (
   `diaryTier` int(11) NOT NULL,
   `points` int(11) DEFAULT NULL,
@@ -235,7 +223,7 @@ CREATE TABLE `diaryrewards` (
 
 DROP TABLE IF EXISTS `diarytimes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `diarytimes` (
   `diaryId` int(11) NOT NULL AUTO_INCREMENT,
   `bossId` int(11) NOT NULL,
@@ -258,7 +246,7 @@ CREATE TABLE `diarytimes` (
 
 DROP TABLE IF EXISTS `diarytypes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `diarytypes` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `difficulty` int(11) NOT NULL,
@@ -277,7 +265,7 @@ CREATE TABLE `diarytypes` (
 
 DROP TABLE IF EXISTS `discordProfileImageUrl`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `discordProfileImageUrl` (
   `userId` bigint(20) NOT NULL,
   `discordProfileImageUrl` varchar(345) DEFAULT NULL,
@@ -292,7 +280,7 @@ CREATE TABLE `discordProfileImageUrl` (
 
 DROP TABLE IF EXISTS `discordelo`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `discordelo` (
   `userId` bigint(20) NOT NULL,
   `discordElo` int(11) DEFAULT '1200',
@@ -309,7 +297,7 @@ CREATE TABLE `discordelo` (
 
 DROP TABLE IF EXISTS `discordelotiers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `discordelotiers` (
   `tier` int(11) NOT NULL,
   `tierName` varchar(45) DEFAULT NULL,
@@ -325,7 +313,7 @@ CREATE TABLE `discordelotiers` (
 
 DROP TABLE IF EXISTS `drops`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `drops` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8 NOT NULL,
@@ -342,7 +330,7 @@ CREATE TABLE `drops` (
 
 DROP TABLE IF EXISTS `loggedmsgs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `loggedmsgs` (
   `messageID` bigint(20) NOT NULL,
   `authorID` bigint(20) DEFAULT NULL,
@@ -361,7 +349,7 @@ CREATE TABLE `loggedmsgs` (
 
 DROP TABLE IF EXISTS `miscRoles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `miscRoles` (
   `roleName` varchar(100) NOT NULL,
   `userId` bigint(20) DEFAULT NULL
@@ -374,7 +362,7 @@ CREATE TABLE `miscRoles` (
 
 DROP TABLE IF EXISTS `miscmodes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `miscmodes` (
   `modeName` varchar(50) NOT NULL,
   `modeStatus` int(11) NOT NULL DEFAULT '0'
@@ -387,7 +375,7 @@ CREATE TABLE `miscmodes` (
 
 DROP TABLE IF EXISTS `new_table`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `new_table` (
   `userId` int(11) NOT NULL,
   `avatarHash` varchar(95) DEFAULT NULL,
@@ -401,7 +389,7 @@ CREATE TABLE `new_table` (
 
 DROP TABLE IF EXISTS `personalbests`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `personalbests` (
   `submissionId` int(11) NOT NULL AUTO_INCREMENT,
   `submitterUserId` bigint(20) NOT NULL,
@@ -434,7 +422,7 @@ CREATE TABLE `personalbests` (
 
 DROP TABLE IF EXISTS `personalbests_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `personalbests_users` (
   `Id` int(11) NOT NULL,
   `userId` bigint(20) DEFAULT NULL,
@@ -454,7 +442,7 @@ CREATE TABLE `personalbests_users` (
 
 DROP TABLE IF EXISTS `pets`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pets` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8 NOT NULL,
@@ -470,7 +458,7 @@ CREATE TABLE `pets` (
 
 DROP TABLE IF EXISTS `pointtracker`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pointtracker` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` bigint(20) NOT NULL,
@@ -492,7 +480,7 @@ CREATE TABLE `pointtracker` (
 
 DROP TABLE IF EXISTS `pointtrackerOverTimeEvents`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pointtrackerOverTimeEvents` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `eventName` varchar(100) DEFAULT NULL,
@@ -507,7 +495,7 @@ CREATE TABLE `pointtrackerOverTimeEvents` (
 
 DROP TABLE IF EXISTS `ranks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ranks` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
@@ -527,7 +515,7 @@ CREATE TABLE `ranks` (
 
 DROP TABLE IF EXISTS `ranksgraceperiod`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `ranksgraceperiod` (
   `gracePeriod` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -539,7 +527,7 @@ CREATE TABLE `ranksgraceperiod` (
 
 DROP TABLE IF EXISTS `rankupdelay`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `rankupdelay` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `memberID` bigint(20) DEFAULT NULL,
@@ -554,7 +542,7 @@ CREATE TABLE `rankupdelay` (
 
 DROP TABLE IF EXISTS `referrals`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `referrals` (
   `userId` bigint(20) NOT NULL,
   `referralIds` varchar(450) NOT NULL,
@@ -570,7 +558,7 @@ CREATE TABLE `referrals` (
 
 DROP TABLE IF EXISTS `roles`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `roles` (
   `name` varchar(50) NOT NULL,
   `discordRoleId` bigint(20) DEFAULT NULL,
@@ -587,7 +575,7 @@ CREATE TABLE `roles` (
 
 DROP TABLE IF EXISTS `submission_participants`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `submission_participants` (
   `dropId` int(11) DEFAULT NULL,
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -606,7 +594,7 @@ CREATE TABLE `submission_participants` (
 
 DROP TABLE IF EXISTS `submissions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `submissions` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` bigint(20) NOT NULL,
@@ -642,7 +630,7 @@ CREATE TABLE `submissions` (
 
 DROP TABLE IF EXISTS `submissionstatus`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `submissionstatus` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8 NOT NULL,
@@ -657,7 +645,7 @@ CREATE TABLE `submissionstatus` (
 
 DROP TABLE IF EXISTS `submissiontype`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `submissiontype` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8 NOT NULL,
@@ -672,7 +660,7 @@ CREATE TABLE `submissiontype` (
 
 DROP TABLE IF EXISTS `userStats`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `userStats` (
   `displayName` varchar(50) NOT NULL,
   `ehbWeeklyEhb` float DEFAULT '0',
@@ -696,7 +684,7 @@ CREATE TABLE `userStats` (
 
 DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `userId` bigint(20) NOT NULL,
   `displayName` varchar(32) NOT NULL,
@@ -727,7 +715,7 @@ CREATE TABLE `users` (
 
 DROP TABLE IF EXISTS `vcTypes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `vcTypes` (
   `id` int(11) NOT NULL,
   `action` varchar(45) DEFAULT NULL,
@@ -741,7 +729,7 @@ CREATE TABLE `vcTypes` (
 
 DROP TABLE IF EXISTS `vcmonthstats`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `vcmonthstats` (
   `year` int(11) NOT NULL,
   `month` int(11) NOT NULL,
@@ -755,7 +743,7 @@ CREATE TABLE `vcmonthstats` (
 
 DROP TABLE IF EXISTS `vctracker`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `vctracker` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `userId` bigint(20) NOT NULL,
@@ -767,7 +755,7 @@ CREATE TABLE `vctracker` (
   KEY `vcAction_idx` (`status`),
   CONSTRAINT `userId` FOREIGN KEY (`userId`) REFERENCES `users` (`userId`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `vcAction` FOREIGN KEY (`status`) REFERENCES `vcTypes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1145173 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1145184 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -776,11 +764,15 @@ CREATE TABLE `vctracker` (
 
 DROP TABLE IF EXISTS `wiseoldmannamechanges`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `wiseoldmannamechanges` (
   `latestnamechangeid` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping routines for database 'sanity2'
+--
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -791,4 +783,4 @@ CREATE TABLE `wiseoldmannamechanges` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-29 19:19:07
+-- Dump completed on 2025-12-29 19:25:32
