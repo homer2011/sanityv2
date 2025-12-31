@@ -10,3 +10,11 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "uvicorn[standard]>=0.40.0",
 ]
+
+[dependency-groups]
+dev = [
+    "taskipy>=1.14.1",
+]
+
+[tool.taskipy.tasks]
+dev = "uvicorn sanity.main:app --reload --host 127.0.0.1 --port 8000"
