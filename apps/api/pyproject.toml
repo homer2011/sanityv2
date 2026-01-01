@@ -17,7 +17,7 @@ dev = [
 ]
 
 [tool.taskipy.tasks]
-dev = "uvicorn sanity.main:app --reload --host 127.0.0.1 --port 8000"
+dev = "uvicorn src.sanity.main:app --reload --host 127.0.0.1 --port 8000"
 format = "ruff format ."
 lint = "ruff check ."
 lint_fix = "ruff check --fix ."
