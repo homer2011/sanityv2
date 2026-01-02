@@ -1,0 +1,10 @@
+name: sanity
+
+services:
+    mysql:
+        image: mysql:latest
+        environment:
+            - MYSQL_DATABASE=${DB_NAME}
+            - MYSQL_ROOT_PASSWORD=${DB_PASS}
+        ports:
+            - ${DB_PORT:-3306}:3306
