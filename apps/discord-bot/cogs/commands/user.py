@@ -546,6 +546,22 @@ def getNonStarRanksPointsbyMonth(month:int, year:int):
 
     return nonStarRankData
 
+def getDiscord2025EloPaginator():
+    mycursor.execute(
+        f"SELECT u.userId, ud.displayName, u.discordElo2024, t.tierName, t.tierEmoji "
+        f"FROM sanity2.discordelo AS u "
+        f"JOIN sanity2.discordelotiers AS t ON u.discordElo2024 >= t.TierPointReq AND "
+        f"t.TierPointReq = ( SELECT MAX(TierPointReq) FROM sanity2.discordelotiers "
+        f"WHERE u.discordElo2024 >= TierPointReq ) "
+        f"JOIN sanity2.users AS ud ON u.userId = ud.userId "
+        f"where ud.isActive = 1  "
+        f"order by discordElo2024 desc"
+    )
+    data = mycursor.fetchall()
+
+    return data
+
+
 def getDiscord2024EloPaginator():
     mycursor.execute(
         f"SELECT u.userId, ud.displayName, u.discordElo2024, t.tierName, t.tierEmoji "
@@ -903,6 +919,10 @@ class User(commands.Cog):
         discord2024EloData = getDiscord2024EloPaginator()
         discord2024Elo = createPageInator(discord2024EloData, f"Discord 2024 elo leaderboard","**Discord 2024 elo leaderboard**")
 
+        discord2025EloData = getDiscord2025EloPaginator()
+        discord2025Elo = createPageInator(discord2025EloData, f"Discord 2025 elo leaderboard",
+                                          "**Discord 2025 elo leaderboard**")
+
         if month == 1:
             year -= 1
             month = 12
@@ -968,6 +988,12 @@ class User(commands.Cog):
             pages.PageGroup(
                 pages=discord2024Elo,
                 label=f"Discord 2024 Elo leaderboard",
+                description="",
+                use_default_buttons=True,
+            ),
+            pages.PageGroup(
+                pages=discord2025Elo,
+                label=f"Discord 2025 Elo leaderboard",
                 description="",
                 use_default_buttons=True,
             ),
