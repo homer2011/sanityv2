@@ -1108,16 +1108,16 @@ def get_raid_item_values():
             connection.close()
 
 
-@app.route('/api/bingo/bossehb', methods=['GET'])  #WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS
+@app.route('/api/bingo/bossehb', methods=['GET'])
 def get_boss_ehb_values():
     """
-    Fetches boss EHB values for the active bingo event.
+    Fetches all boss EHB values.
     """
     connection = None
     try:
         connection = mysql.connector.connect(**BINGO_DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
-        query = "SELECT boss, ehb FROM bingo_boss_ehb WHERE event_id = (SELECT id FROM bingo_events WHERE is_active = 1);"
+        query = "SELECT id, boss, ehb, event_id FROM bingo_boss_ehb ORDER BY boss;"
         cursor.execute(query)
         data = cursor.fetchall()
         return jsonify(data)
@@ -1342,7 +1342,7 @@ def get_board_details(event_id):
     """ Fetches all tiles and their associated items for a specific event's board. """
     connection = None
     try:
-        connection = mysql.connector.connect(**BINGO_DB_CONFIG, autocommit=True)
+        connection = mysql.connector.connect(**BINGO_DB_CONFIG)
         cursor = connection.cursor(dictionary=True)
 
         cursor.execute("SELECT id FROM bingo_boards WHERE event_id = %s", (event_id,))
@@ -1352,8 +1352,8 @@ def get_board_details(event_id):
 
         board_id = board_result['id']
 
-        # Corrected Query: Use 'AS' to match frontend's expected camelCase keys
-        tile_query = f"""
+        # Fetch tiles with boss images
+        tile_query = """
             SELECT 
                 bt.id, 
                 bt.position, 
@@ -1364,11 +1364,11 @@ def get_board_details(event_id):
                 bt.points,
                 bbi.bossImageUrl as image_url
             FROM bingo_tiles bt 
-            left join sanitybingo.bingo_bossImages bbi on bbi.bossName = bt.task_name
-            WHERE board_id = {board_id}
-            ORDER BY position
+            LEFT JOIN sanitybingo.bingo_bossImages bbi on bbi.bossName = bt.task_name
+            WHERE bt.board_id = %s
+            ORDER BY bt.position
         """
-        cursor.execute(tile_query)
+        cursor.execute(tile_query, (board_id,))
         tiles = cursor.fetchall()
 
         if not tiles:
@@ -1377,7 +1377,7 @@ def get_board_details(event_id):
         tile_ids = [tile['id'] for tile in tiles]
         placeholders = ','.join(['%s'] * len(tile_ids))
 
-        # Corrected Query: Use 'AS' for consistency if needed, assuming DB columns are tileId and dropName
+        # Fetch associated items
         item_query = f"SELECT tileId, dropName FROM bingo_tile_items WHERE tileId IN ({placeholders});"
         cursor.execute(item_query, tuple(tile_ids))
         items = cursor.fetchall()
@@ -1403,32 +1403,99 @@ def get_board_details(event_id):
             connection.close()
 
 
-@app.route('/api/bingo/create_event', methods=['POST'])
-def create_new_event():
-    """ Creates a new, empty bingo event and an associated empty board. """
+@app.route('/api/bingo/update_board', methods=['POST'])
+def update_bingo_board():
+    """
+    Updates an existing bingo board. Deletes old tiles and inserts new ones in a transaction.
+    """
     data = request.get_json()
+    event_id = data.get('eventId')
+    tiles_data = data.get('tiles')
+
+    if not event_id:
+        return jsonify({"error": "Missing eventId"}), 400
+
+    if not tiles_data:
+        return jsonify({"error": "Missing tiles data"}), 400
+
     connection = None
     try:
         connection = mysql.connector.connect(**BINGO_DB_CONFIG)
         cursor = connection.cursor()
 
-        event_query = "INSERT INTO bingo_events (name, start_date, end_date, is_active) VALUES (%s, %s, %s, 0)"
-        cursor.execute(event_query, (data['name'], data['start_date'], data['end_date']))
-        event_id = cursor.lastrowid
+        # Get the board_id for this event
+        cursor.execute("SELECT id FROM bingo_boards WHERE event_id = %s", (event_id,))
+        board_result = cursor.fetchone()
+        if not board_result:
+            return jsonify({"error": "No board found for this event"}), 404
+        board_id = board_result[0]
 
-        board_query = "INSERT INTO bingo_boards (event_id, name) VALUES (%s, %s)"
-        cursor.execute(board_query, (event_id, f"{data['name']} Board"))
+        # Delete old tile items first
+        cursor.execute("SELECT id FROM bingo_tiles WHERE board_id = %s", (board_id,))
+        old_tile_ids_result = cursor.fetchall()
+        if old_tile_ids_result:
+            old_tile_ids = [item[0] for item in old_tile_ids_result]
+            placeholders = ','.join(['%s'] * len(old_tile_ids))
+            cursor.execute(f"DELETE FROM bingo_tile_items WHERE tileId IN ({placeholders})", tuple(old_tile_ids))
+
+        # Delete old tiles
+        cursor.execute("DELETE FROM bingo_tiles WHERE board_id = %s", (board_id,))
+
+        # Insert new tiles
+        tile_query = """
+            INSERT INTO bingo_tiles (board_id, position, task_name, description, tileType, dropOrPointReq, points)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        item_query = "INSERT INTO bingo_tile_items (eventId, tileId, dropName) VALUES (%s, %s, %s)"
+
+        tiles_inserted = 0
+        for i, tile in enumerate(tiles_data):
+            # Skip empty tiles
+            if not tile.get('taskName') or tile['taskName'].strip() == '':
+                continue
+
+            # Determine the boss name to save in task_name
+            final_boss_name = tile.get('customBossName', '') if tile.get('bossName') == 'custom' else tile.get(
+                'bossName', '')
+
+            # Combine taskName and description with a separator for the description field
+            task_name_text = tile.get('taskName', '')
+            description_text = tile.get('description', '')
+            combined_description = f"{task_name_text} - {description_text}" if description_text else task_name_text
+
+            cursor.execute(tile_query, (
+                board_id,
+                i + 1,
+                final_boss_name,  # Boss name goes in task_name column
+                combined_description,  # Combined task and description goes in description column
+                tile.get('tileType', 'Unique'),
+                tile.get('requirement', 1),
+                tile.get('points', 0)
+            ))
+            tile_id = cursor.lastrowid
+            tiles_inserted += 1
+
+            # Insert associated items if any
+            if tile.get('items'):
+                items = [item.strip().lower() for item in tile['items'].split(',') if item.strip()]
+                for item_name in items:
+                    cursor.execute(item_query, (event_id, tile_id, item_name))
 
         connection.commit()
-        return jsonify({"message": "Event created successfully", "id": event_id}), 201
+        return jsonify({
+            "message": f"Board updated successfully. {tiles_inserted} tiles saved.",
+            "tiles_count": tiles_inserted
+        }), 200
+
     except mysql.connector.Error as err:
-        if connection: connection.rollback()
-        return jsonify({"error": str(err)}), 500
+        if connection:
+            connection.rollback()
+        print(f"Error updating board: {err}")
+        return jsonify({"error": f"Database transaction failed: {err}"}), 500
     finally:
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
-
 
 @app.route('/api/bingo/bossitems', methods=['GET'])
 def get_boss_items_for_generator():
@@ -1452,73 +1519,150 @@ def get_boss_items_for_generator():
             cursor.close()
             connection.close()
 
-
-@app.route('/api/bingo/update_board', methods=['POST'])
-def update_bingo_board():
+@app.route('/api/bingo/create_event', methods=['POST'])
+def create_new_event():
     """
-    Updates an existing bingo board. Deletes old tiles and inserts new ones in a transaction.
+    Creates a new, empty bingo event and an associated empty board.
     """
     data = request.get_json()
-    event_id = data.get('eventId')
-    tiles_data = data.get('tiles')
-
-    if not all([event_id, tiles_data]):
-        return jsonify({"error": "Missing eventId or tiles data"}), 400
-
     connection = None
     try:
         connection = mysql.connector.connect(**BINGO_DB_CONFIG)
         cursor = connection.cursor()
 
-        cursor.execute("SELECT id FROM bingo_boards WHERE event_id = %s", (event_id,))
-        board_result = cursor.fetchone()
-        if not board_result:
-            return jsonify({"error": "No board found for this event"}), 404
-        board_id = board_result[0]
+        # Insert into bingo_events table
+        event_query = "INSERT INTO bingo_events (name, start_date, end_date, is_active) VALUES (%s, %s, %s, 0)"
+        cursor.execute(event_query, (data['name'], data['start_date'], data['end_date']))
+        event_id = cursor.lastrowid
 
-        cursor.execute("SELECT id FROM bingo_tiles WHERE board_id = %s", (board_id,))
-        old_tile_ids_result = cursor.fetchall()
-        if old_tile_ids_result:
-            old_tile_ids = [item[0] for item in old_tile_ids_result]
-            placeholders = ','.join(['%s'] * len(old_tile_ids))
-            cursor.execute(f"DELETE FROM bingo_tile_items WHERE tileId IN ({placeholders})", tuple(old_tile_ids))
-
-        cursor.execute("DELETE FROM bingo_tiles WHERE board_id = %s", (board_id,))
-
-        tile_query = """
-            INSERT INTO bingo_tiles (board_id, position, task_name, description, tileType, dropOrPointReq, points, image_url)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        item_query = "INSERT INTO bingo_tile_items (eventId, tileId, dropName) VALUES (%s, %s, %s)"
-
-        for i, tile in enumerate(tiles_data):
-            if not tile['taskName']: continue
-
-            cursor.execute(tile_query, (
-                board_id, i + 1, tile['taskName'], tile['description'], tile['tileType'],
-                tile['requirement'], tile['points'], tile['imageUrl']
-            ))
-            tile_id = cursor.lastrowid
-
-            if tile.get('items'):
-                items = [item.strip().lower() for item in tile['items'].split(',') if item.strip()]
-                for item_name in items:
-                    cursor.execute(item_query, (event_id, tile_id, item_name))
+        # Create associated board with the event_id
+        board_query = "INSERT INTO bingo_boards (event_id) VALUES (%s)"
+        cursor.execute(board_query, (event_id,))
 
         connection.commit()
-        return jsonify({"message": f"Board for event {event_id} updated successfully."}), 200
-
+        return jsonify({"message": "Event created successfully", "id": event_id}), 201
     except mysql.connector.Error as err:
-        if connection: connection.rollback()
-        return jsonify({"error": f"Database transaction failed: {err}"}), 500
+        if connection:
+            connection.rollback()
+        print(f"Error creating event: {err}")
+        return jsonify({"error": str(err)}), 500
     finally:
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
 
+
+# Boss Items Management
+@app.route('/api/bingo/update_boss_item', methods=['POST'])
+def update_boss_item():
+    data = request.get_json()
+    connection = None
+    try:
+        connection = mysql.connector.connect(**BINGO_DB_CONFIG)
+        cursor = connection.cursor()
+
+        if data.get('id'):
+            # Update existing
+            query = """UPDATE bingo_boss_items 
+                       SET bossName=%s, item=%s, itemPoints=%s, droprate=%s, hoursToGetDrop=%s 
+                       WHERE id=%s"""
+            cursor.execute(query, (data['bossName'], data['item'], data['itemPoints'],
+                                   data['droprate'], data['hoursToGetDrop'], data['id']))
+        else:
+            # Insert new
+            query = """INSERT INTO bingo_boss_items (bossName, item, itemPoints, droprate, hoursToGetDrop) 
+                       VALUES (%s, %s, %s, %s, %s)"""
+            cursor.execute(query, (data['bossName'], data['item'], data['itemPoints'],
+                                   data['droprate'], data['hoursToGetDrop']))
+
+        connection.commit()
+        return jsonify({"message": "Boss item saved successfully"}), 200
+    except mysql.connector.Error as err:
+        if connection: connection.rollback()
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/bingo/delete_boss_item', methods=['POST'])
+def delete_boss_item():
+    data = request.get_json()
+    connection = None
+    try:
+        connection = mysql.connector.connect(**BINGO_DB_CONFIG)
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM bingo_boss_items WHERE id = %s", (data['id'],))
+        connection.commit()
+        return jsonify({"message": "Boss item deleted successfully"}), 200
+    except mysql.connector.Error as err:
+        if connection: connection.rollback()
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/bingo/update_boss_ehb', methods=['POST'])
+def update_boss_ehb():
+    data = request.get_json()
+    connection = None
+    try:
+        connection = mysql.connector.connect(**BINGO_DB_CONFIG)
+        cursor = connection.cursor()
+
+        # Get the active event ID, or use NULL if none exists
+        cursor.execute("SELECT id FROM bingo_events WHERE is_active = 1 LIMIT 1")
+        event_result = cursor.fetchone()
+        event_id = event_result[0] if event_result else None
+
+        if data.get('isUpdate'):
+            # Update existing
+            query = "UPDATE bingo_boss_ehb SET ehb=%s WHERE boss=%s"
+            cursor.execute(query, (data['ehb'], data['boss']))
+        else:
+            # Insert new
+            query = "INSERT INTO bingo_boss_ehb (boss, ehb, event_id) VALUES (%s, %s, %s)"
+            cursor.execute(query, (data['boss'], data['ehb'], event_id))
+
+        connection.commit()
+        return jsonify({"message": "Boss EHB saved successfully"}), 200
+    except mysql.connector.Error as err:
+        if connection: connection.rollback()
+        print(f"Error updating boss EHB: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/bingo/delete_boss_ehb', methods=['POST'])
+def delete_boss_ehb():
+    data = request.get_json()
+    connection = None
+    try:
+        connection = mysql.connector.connect(**BINGO_DB_CONFIG)
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM bingo_boss_ehb WHERE boss = %s", (data['boss'],))
+        connection.commit()
+        return jsonify({"message": "Boss EHB deleted successfully"}), 200
+    except mysql.connector.Error as err:
+        if connection: connection.rollback()
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+
 # Add other endpoints like /api/bingo/overview and /api/bingo/ehb here
 # These can be complex and may require multiple queries similar to the /teams endpoint.
 # For now, they will return mock data in the frontend.
+
 
 
 @app.route('/')

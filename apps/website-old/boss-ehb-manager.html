@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boss EHB Manager</title>
+    <link rel="icon" type="image/x-icon" href="/favico.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #122a3d;
+            color: #e2e8f0;
+        }
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal-content {
+            background-color: #1a364d;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="bg-custom-blue-800 text-white shadow-lg">
+        <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold">
+                <a href="#" class="hover:text-custom-blue-300 transition-colors duration-200">Boss EHB Manager</a>
+            </div>
+            <div class="flex space-x-4">
+                <a href="/bingobuilder.html" class="nav-link px-4 py-2 hover:bg-custom-blue-700 rounded-md transition-colors">Board Builder</a>
+                <a href="/boss-items-manager.html" class="nav-link px-4 py-2 hover:bg-custom-blue-700 rounded-md transition-colors">Boss Items Manager</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div class="space-y-8">
+            <!-- Add New Boss EHB -->
+            <fieldset class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <legend class="text-2xl font-bold text-custom-blue-400 mb-4 px-2">Add New Boss EHB</legend>
+                <button id="addNewEhbBtn" type="button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+                    Add New Boss
+                </button>
+            </fieldset>
+
+            <!-- EHB Table -->
+            <fieldset class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <legend class="text-2xl font-bold text-custom-blue-400 mb-4 px-2">Boss EHB Values</legend>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs uppercase bg-gray-700">
+                            <tr>
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Boss</th>
+                                <th class="px-4 py-3">EHB (Kills per Hour)</th>
+                                <th class="px-4 py-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ehbTableBody">
+                            <tr>
+                                <td colspan="4" class="px-4 py-3 text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </fieldset>
+        </div>
+    </main>
+
+    <!-- Edit/Add EHB Modal -->
+    <div id="ehbModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h2 id="modalTitle" class="text-2xl font-bold text-custom-blue-300 mb-6">Add Boss EHB</h2>
+            <form id="ehbForm" class="space-y-4">
+                <input type="hidden" id="ehbId">
+                <div>
+                    <label for="bossName" class="block text-sm font-medium text-gray-300 mb-1">Boss Name</label>
+                    <input type="text" id="bossName" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" required>
+                    <small class="text-gray-400">Use underscore format: chambers_of_xeric from <b><a href="https://docs.wiseoldman.net/api/global-type-definitions#enum-boss" target="_blank">WiseOldMan docs</a></b></small>
+                </div>
+                <div>
+                    <label for="ehbValue" class="block text-sm font-medium text-gray-300 mb-1">EHB (Kills per Hour)</label>
+                    <input type="number" step="0.01" id="ehbValue" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" required>
+                    <small class="text-gray-400">Example: 2.5 means 2.5 kills per hour</small>
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button type="button" id="cancelBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Cancel</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition-colors">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-custom-blue-800 text-white text-center p-4 shadow-inner mt-8">
+        <p>&copy; 2025 Sanity OSRS clan</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_BASE = 'https://sanityosrs.com/api';
+            const BOSS_EHB_API_URL = `${API_BASE}/bingo/bossehb`;
+            const UPDATE_BOSS_EHB_API_URL = `${API_BASE}/bingo/update_boss_ehb`;
+            const DELETE_BOSS_EHB_API_URL = `${API_BASE}/bingo/delete_boss_ehb`;
+
+            const ehbModal = document.getElementById('ehbModal');
+            const ehbForm = document.getElementById('ehbForm');
+            const ehbTableBody = document.getElementById('ehbTableBody');
+
+            let currentEditId = null;
+
+            const loadEhbValues = async () => {
+                try {
+                    const response = await fetch(BOSS_EHB_API_URL);
+                    const ehbValues = await response.json();
+
+                    ehbTableBody.innerHTML = '';
+                    ehbValues.forEach(ehb => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b border-gray-700 hover:bg-gray-700';
+                        row.innerHTML = `
+                            <td class="px-4 py-3">${ehb.id || 'N/A'}</td>
+                            <td class="px-4 py-3">${ehb.boss}</td>
+                            <td class="px-4 py-3">${ehb.ehb}</td>
+                            <td class="px-4 py-3">
+                                <button onclick="editEhb('${ehb.boss}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded mr-2">Edit</button>
+                                <button onclick="deleteEhb('${ehb.boss}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded">Delete</button>
+                            </td>
+                        `;
+                        ehbTableBody.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error('Failed to load EHB values:', error);
+                    ehbTableBody.innerHTML = '<tr><td colspan="4" class="px-4 py-3 text-center text-red-500">Failed to load EHB values</td></tr>';
+                }
+            };
+
+            const openModal = (ehb = null) => {
+                if (ehb) {
+                    document.getElementById('modalTitle').textContent = 'Edit Boss EHB';
+                    document.getElementById('bossName').value = ehb.boss;
+                    document.getElementById('ehbValue').value = ehb.ehb;
+                    currentEditId = ehb.boss;
+                } else {
+                    document.getElementById('modalTitle').textContent = 'Add Boss EHB';
+                    ehbForm.reset();
+                    currentEditId = null;
+                }
+                ehbModal.classList.remove('hidden');
+            };
+
+            const closeModal = () => {
+                ehbModal.classList.add('hidden');
+                ehbForm.reset();
+            };
+
+            const saveEhb = async (e) => {
+                e.preventDefault();
+
+                const ehbData = {
+                    boss: document.getElementById('bossName').value,
+                    ehb: parseFloat(document.getElementById('ehbValue').value),
+                    isUpdate: currentEditId !== null
+                };
+
+                try {
+                    const response = await fetch(UPDATE_BOSS_EHB_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(ehbData)
+                    });
+
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error || 'Failed to save EHB');
+                    }
+
+                    const result = await response.json();
+                    alert(result.message);
+                    closeModal();
+                    loadEhbValues();
+                } catch (error) {
+                    console.error('Error saving EHB:', error);
+                    alert(`Error: ${error.message}`);
+                }
+            };
+
+            window.editEhb = async (bossName) => {
+                try {
+                    const response = await fetch(BOSS_EHB_API_URL);
+                    const ehbValues = await response.json();
+                    const ehb = ehbValues.find(e => e.boss === bossName);
+                    if (ehb) {
+                        openModal(ehb);
+                    }
+                } catch (error) {
+                    console.error('Error loading EHB:', error);
+                }
+            };
+
+            window.deleteEhb = async (bossName) => {
+                if (!confirm('Are you sure you want to delete this boss EHB?')) return;
+
+                try {
+                    const response = await fetch(DELETE_BOSS_EHB_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ boss: bossName })
+                    });
+
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error || 'Failed to delete EHB');
+                    }
+
+                    const result = await response.json();
+                    alert(result.message);
+                    loadEhbValues();
+                } catch (error) {
+                    console.error('Error deleting EHB:', error);
+                    alert(`Error: ${error.message}`);
+                }
+            };
+
+            // Event Listeners
+            document.getElementById('addNewEhbBtn').addEventListener('click', () => openModal());
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            ehbForm.addEventListener('submit', saveEhb);
+
+            // Initial Load
+            loadEhbValues();
+        });
+    </script>
+</body>
+</html>
