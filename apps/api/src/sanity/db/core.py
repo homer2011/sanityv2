@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from src.sanity.config import settings
+from sanity.config import settings
 
 # Create async database engine (connection factory)
 engine = create_async_engine(

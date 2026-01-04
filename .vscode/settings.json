@@ -5,6 +5,7 @@
         "**/.ruff_cache": true
     },
     "python.analysis.autoImportCompletions": true,
+    "python.analysis.extraPaths": ["./apps/api/src"],
     "python.analysis.typeCheckingMode": "basic",
 
     "[python]": {

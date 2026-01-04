@@ -2,7 +2,7 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.sanity.db.core import async_session_factory
+from sanity.db.core import async_session_factory
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
