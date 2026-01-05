@@ -9,6 +9,31 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sanity.config import settings
 from sanity.db.base import Base
 
+
+def import_models() -> None:
+    """
+    Import all individual feature `models.py` files.
+
+    This is required for a feature-based project structure so that SQLAlchemy correctly registers
+    every table via `Base.metadata`.
+    """
+
+    import importlib
+    import pkgutil
+
+    import sanity.modules as modules
+
+    for m in pkgutil.iter_modules(modules.__path__):
+        try:
+            importlib.import_module(f"{modules.__name__}.{m.name}.models")
+
+        except ModuleNotFoundError:
+            # feature package might not have models.py yet
+            pass
+
+
+import_models()
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
