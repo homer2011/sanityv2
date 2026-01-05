@@ -163,14 +163,25 @@
     </main>
 
     <!-- Modals -->
+    <!-- Tile Edit Modal -->
     <div id="tileModal" class="modal-backdrop hidden">
         <div class="modal-content">
             <h2 id="modalTitle" class="text-2xl font-bold text-custom-blue-300 mb-6">Edit Tile #1</h2>
             <form id="tileForm" class="space-y-4">
                 <input type="hidden" id="tileIndex">
                 <div>
+                    <label for="bossName" class="block text-sm font-medium text-gray-300 mb-1">Boss Name</label>
+                    <select id="bossName" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white">
+                        <option value="">Select a boss...</option>
+                    </select>
+                </div>
+                <div id="customBossNameDiv" class="hidden">
+                    <label for="customBossName" class="block text-sm font-medium text-gray-300 mb-1">Custom Boss Name</label>
+                    <input type="text" id="customBossName" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="Enter custom boss name">
+                </div>
+                <div>
                     <label for="taskName" class="block text-sm font-medium text-gray-300 mb-1">Task Name</label>
-                    <input type="text" id="taskName" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="e.g., Obtain a Twisted Bow">
+                    <input type="text" id="taskName" class="w-full p-2 bg-gray-900 border border-gray-600 rounded-md text-white" placeholder="e.g., Get 5 unique drops">
                 </div>
                 <div>
                     <label for="description" class="block text-sm font-medium text-gray-300 mb-1">Description / Sub-text</label>
@@ -250,7 +261,7 @@
             const RAID_ITEMS_API_URL = `${API_BASE}/bingo/raiditemvalues`;
             const UPDATE_BOARD_API_URL = `${API_BASE}/bingo/update_board`;
 
-            let boardState = Array(25).fill(null).map(() => ({ taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' }));
+            let boardState = Array(25).fill(null).map(() => ({ bossName: '', customBossName: '', taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' }));
             let bossItemData = [];
             let bossEhbData = [];
             let raidItemData = [];
@@ -268,11 +279,18 @@
                     const button = document.createElement('button');
                     button.type = 'button';
                     const tileContent = tile || {};
+
+                    // Determine the boss name to display
+                    const displayBossName = tileContent.bossName === 'custom'
+                        ? tileContent.customBossName
+                        : tileContent.bossName;
+
                     button.className = `tile-button ${tileContent.taskName ? 'filled' : ''}`;
                     button.dataset.index = index;
                     button.innerHTML = `
+                        <span class="font-bold text-lg">${index + 1}</span>
                         <div class="flex-grow flex flex-col justify-center items-center w-full">
-                            <span class="font-bold text-lg">${index + 1}</span>
+                            <span class="text-xs text-blue-300 w-full break-words">${displayBossName || ''}</span>
                             <span class="text-sm text-gray-300 w-full break-words">${tileContent.taskName || 'Empty Tile'}</span>
                         </div>
                         <span class="text-xs font-bold text-yellow-400">${tileContent.points ? `${tileContent.points} pts` : ''}</span>
@@ -286,6 +304,17 @@
                 const tile = boardState[index] || {};
                 tileIndexInput.value = index;
                 document.getElementById('modalTitle').textContent = `Edit Tile #${index + 1}`;
+
+                const customBossNameDiv = document.getElementById('customBossNameDiv');
+
+                document.getElementById('bossName').value = tile.bossName || '';
+                document.getElementById('customBossName').value = tile.customBossName || '';
+
+                if (tile.bossName === 'custom') {
+                    customBossNameDiv.classList.remove('hidden');
+                } else {
+                    customBossNameDiv.classList.add('hidden');
+                }
 
                 document.getElementById('taskName').value = tile.taskName || '';
                 document.getElementById('description').value = tile.description || '';
@@ -305,7 +334,12 @@
                 const index = parseInt(tileIndexInput.value, 10);
                 if (isNaN(index)) return;
 
+                const bossName = document.getElementById('bossName').value;
+                const customBossName = document.getElementById('customBossName').value;
+
                 boardState[index] = {
+                    bossName: bossName,
+                    customBossName: bossName === 'custom' ? customBossName : '',
                     taskName: document.getElementById('taskName').value,
                     description: document.getElementById('description').value,
                     tileType: document.getElementById('tileType').value,
@@ -338,7 +372,7 @@
 
             const loadBoardForEvent = async (eventId) => {
                  if (!eventId) {
-                    boardState = Array(25).fill(null).map(() => ({ taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' }));
+                    boardState = Array(25).fill(null).map(() => ({ bossName: '', customBossName: '', taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' }));
                     renderGrid();
                     return;
                 }
@@ -352,9 +386,17 @@
                     tiles.forEach(tile => {
                         const index = tile.position - 1;
                         if (index >= 0 && index < 25) {
+                            const fullDescription = tile.description || '';
+                            const parts = fullDescription.split(' - ');
+                            const taskNameText = parts[0] || '';
+                            const descriptionText = parts.slice(1).join(' - ') || '';
+                            const bossNameFromDB = tile.task_name || '';
+
                             boardState[index] = {
-                                taskName: tile.task_name,
-                                description: tile.description,
+                                bossName: bossNameFromDB,
+                                customBossName: '',
+                                taskName: taskNameText,
+                                description: descriptionText,
                                 tileType: tile.tileType,
                                 requirement: tile.dropOrPointReq,
                                 points: tile.points,
@@ -368,7 +410,7 @@
                 } catch (error) {
                     console.error(error);
                     alert('Could not load board for the selected event. It might be a new event with no board yet.');
-                    boardState = Array(25).fill(null).map(() => ({ taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' }));
+                    boardState = Array(25).fill(null).map(() => ({ bossName: '', customBossName: '', taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' }));
                     renderGrid();
                 }
             };
@@ -380,9 +422,20 @@
                     return;
                 }
 
+                const nonEmptyTiles = boardState.filter(t => t && t.taskName && t.taskName.trim() !== '');
+
+                if (nonEmptyTiles.length === 0) {
+                    alert('Please add at least one tile before saving.');
+                    return;
+                }
+
+                if (!confirm(`Save board with ${nonEmptyTiles.length} tiles?`)) {
+                    return;
+                }
+
                 const payload = {
                     eventId: eventId,
-                    tiles: boardState.filter(t => t && t.taskName)
+                    tiles: boardState
                 };
 
                 try {
@@ -398,7 +451,7 @@
                     const result = await response.json();
                     alert(result.message);
                 } catch (error) {
-                    console.error(error);
+                    console.error('Error saving board:', error);
                     alert(`Error saving board: ${error.message}`);
                 }
             };
@@ -416,13 +469,16 @@
 
                     const bossChecklist = document.getElementById('boss-checklist');
                     const mustIncludeChecklist = document.getElementById('must-include-checklist');
-                    const bosses = [...new Set(bossItemData.map(item => item.bossName))];
+                    const bossNameSelect = document.getElementById('bossName');
+                    const bosses = [...new Set(bossItemData.map(item => item.bossName))].sort();
 
                     bossChecklist.innerHTML = '';
                     mustIncludeChecklist.innerHTML = '';
+                    bossNameSelect.innerHTML = '<option value="">Select a boss...</option>';
 
                     bosses.forEach(boss => {
                         if (!boss) return;
+
                         const enabledLabel = document.createElement('label');
                         enabledLabel.className = 'flex items-center space-x-2 text-sm';
                         enabledLabel.innerHTML = `<input type="checkbox" class="boss-checkbox bg-gray-700 rounded" value="${boss}" checked><span>${boss}</span>`;
@@ -432,7 +488,18 @@
                         mustIncludeLabel.className = 'flex items-center space-x-2 text-sm';
                         mustIncludeLabel.innerHTML = `<input type="checkbox" class="must-include-checkbox bg-gray-700 rounded" value="${boss}"><span>${boss}</span>`;
                         mustIncludeChecklist.appendChild(mustIncludeLabel);
+
+                        const option = document.createElement('option');
+                        option.value = boss;
+                        option.textContent = boss;
+                        bossNameSelect.appendChild(option);
                     });
+
+                    const customOption = document.createElement('option');
+                    customOption.value = 'custom';
+                    customOption.textContent = '-- Custom Name --';
+                    bossNameSelect.appendChild(customOption);
+
                 } catch (error) {
                     console.error('Failed to fetch all generator data:', error);
                     document.getElementById('boss-checklist').innerHTML = '<p class="text-red-500">Could not load boss list.</p>';
@@ -448,7 +515,6 @@
                     KC: parseInt(document.getElementById('kcWeight').value, 10),
                     Points: parseInt(document.getElementById('pointsWeight').value, 10),
                 };
-                const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
                 const enabledBosses = new Set(Array.from(document.querySelectorAll('.boss-checkbox:checked')).map(cb => cb.value));
                 const mustIncludeBosses = new Set(Array.from(document.querySelectorAll('.must-include-checkbox:checked')).map(cb => cb.value));
 
@@ -470,6 +536,7 @@
                     return acc;
                 }, {});
 
+                // Generate Unique (No Duplicates) tiles
                 for (const bossName in itemsByBoss) {
                     const { items } = itemsByBoss[bossName];
                     const sortedItems = [...items].sort((a, b) => a.hoursToGetDrop - b.hoursToGetDrop);
@@ -477,10 +544,23 @@
                         const itemsForTile = sortedItems.slice(0, i);
                         const totalHoursForTile = itemsForTile.reduce((sum, item) => sum + item.hoursToGetDrop, 0);
                         if (totalHoursForTile >= minTileHours && totalHoursForTile <= maxTileHours) {
-                            uniqueNoDupsPool.push({ boss: bossName, taskName: `Get ${i} of ${items.length} uniques from ${bossName}`, description: `No duplicates.`, tileType: 'Unique', requirement: i, points: Math.round(totalHoursForTile), items: items.map(it => it.item).join(', '), hours: totalHoursForTile });
+                            uniqueNoDupsPool.push({
+                                boss: bossName,
+                                bossName: bossName,
+                                customBossName: '',
+                                taskName: `Get ${i} of ${items.length} uniques`,
+                                description: `No duplicates allowed`,
+                                tileType: 'Unique',
+                                requirement: i,
+                                points: Math.round(totalHoursForTile),
+                                items: items.map(it => it.item).join(', '),
+                                hours: totalHoursForTile,
+                                imageUrl: ''
+                            });
                         }
                     }
 
+                    // Generate Unique (Duplicates Allowed) tiles
                     const totalHourlyDropRate = items.reduce((sum, item) => sum + (item.hoursToGetDrop ? 1 / item.hoursToGetDrop : 0), 0);
                     if (totalHourlyDropRate === 0) continue;
                     const avgHoursPerAnyUnique = 1 / totalHourlyDropRate;
@@ -490,11 +570,24 @@
                         let numUniques = Math.ceil(targetHours / avgHoursPerAnyUnique);
                         numUniques = Math.min(numUniques, maxUniquesCap);
                         if (numUniques > 1) {
-                            uniqueDupsPool.push({ boss: bossName, taskName: `Get ${numUniques} unique drops from ${bossName}`, description: `Duplicates are allowed.`, tileType: 'Unique', requirement: numUniques, points: Math.round(targetHours), items: items.map(it => it.item).join(', '), hours: targetHours });
+                            uniqueDupsPool.push({
+                                boss: bossName,
+                                bossName: bossName,
+                                customBossName: '',
+                                taskName: `Get ${numUniques} unique drops`,
+                                description: `Duplicates are allowed`,
+                                tileType: 'Unique',
+                                requirement: numUniques,
+                                points: Math.round(targetHours),
+                                items: items.map(it => it.item).join(', '),
+                                hours: targetHours,
+                                imageUrl: ''
+                            });
                         }
                     }
                 }
 
+                // Generate KC tiles
                 bossEhbData.forEach(boss => {
                     const bossName = boss.boss.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                     if (enabledBosses.has(bossName) && boss.ehb > 0) {
@@ -502,12 +595,25 @@
                             const targetHours = minTileHours + (maxTileHours - minTileHours) * Math.random();
                             const requiredKc = Math.round(targetHours * boss.ehb);
                             if (requiredKc > 5) {
-                                kcTilePool.push({ boss: bossName, taskName: `${requiredKc} ${bossName} KC`, description: `Kill ${bossName} ${requiredKc} times.`, tileType: 'KC', requirement: requiredKc, points: Math.round(targetHours), items: bossName, hours: targetHours });
+                                kcTilePool.push({
+                                    boss: bossName,
+                                    bossName: bossName,
+                                    customBossName: '',
+                                    taskName: `${requiredKc} KC`,
+                                    description: `Kill ${bossName} ${requiredKc} times`,
+                                    tileType: 'KC',
+                                    requirement: requiredKc,
+                                    points: Math.round(targetHours),
+                                    items: bossName,
+                                    hours: targetHours,
+                                    imageUrl: ''
+                                });
                             }
                         }
                     }
                 });
 
+                // Generate Points tiles
                 const pointsByRaid = raidItemData.reduce((acc, item) => {
                     if (!acc[item.boss]) acc[item.boss] = [];
                     acc[item.boss].push(item);
@@ -520,7 +626,19 @@
                         const targetHours = minTileHours + (maxTileHours - minTileHours) * Math.random();
                         const requiredPoints = Math.round(targetHours * avgPointsPerHour);
                         if(requiredPoints > 0) {
-                            pointsTilePool.push({ boss: raidName, taskName: `Get ${requiredPoints} points from ${raidName}`, description: `Get points from any unique drop in ${raidName}.`, tileType: 'Points', requirement: requiredPoints, points: Math.round(targetHours), items: pointsByRaid[raidName].map(it => it.item).join(', '), hours: targetHours });
+                            pointsTilePool.push({
+                                boss: raidName,
+                                bossName: raidName,
+                                customBossName: '',
+                                taskName: `Get ${requiredPoints} points`,
+                                description: `Get points from any unique drop`,
+                                tileType: 'Points',
+                                requirement: requiredPoints,
+                                points: Math.round(targetHours),
+                                items: pointsByRaid[raidName].map(it => it.item).join(', '),
+                                hours: targetHours,
+                                imageUrl: ''
+                            });
                         }
                     }
                 }
@@ -530,6 +648,7 @@
                 const allPools = { UniqueDups: uniqueDupsPool, UniqueNoDups: uniqueNoDupsPool, KC: kcTilePool, Points: pointsTilePool };
                 Object.values(allPools).forEach(pool => pool.sort(() => 0.5 - Math.random()));
 
+                // Add must-include bosses first
                 mustIncludeBosses.forEach(bossName => {
                     if (usedBosses.has(bossName)) return;
                     for (const pool of Object.values(allPools)) {
@@ -542,6 +661,7 @@
                     }
                 });
 
+                // Fill remaining slots with weighted random selection
                 const weightedPool = [];
                 for (const type in weights) {
                     for(let i = 0; i < weights[type]; i++) {
@@ -567,13 +687,15 @@
                     }
                 }
 
+                // Convert to boardState format (remove 'hours' and 'boss' helper fields)
                 boardState = newBoard.map(tile => {
                     const { hours, boss, ...finalTile } = tile;
                     return finalTile;
                 });
 
+                // Fill empty slots
                 while (boardState.length < 25) {
-                    boardState.push({ taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' });
+                    boardState.push({ bossName: '', customBossName: '', taskName: '', description: '', tileType: 'Unique', requirement: 1, points: 0, imageUrl: '', items: '' });
                 }
 
                 renderGrid();
@@ -583,6 +705,7 @@
 
             const openEventModal = () => eventModal.classList.remove('hidden');
             const closeEventModal = () => eventModal.classList.add('hidden');
+
             const saveEvent = async (e) => {
                 e.preventDefault();
                 const newEvent = {
@@ -590,24 +713,47 @@
                     start_date: document.getElementById('newStartDate').value,
                     end_date: document.getElementById('newEndDate').value,
                 };
+
+                if (!newEvent.name || !newEvent.start_date || !newEvent.end_date) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
                 try {
                     const response = await fetch(CREATE_EVENT_API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newEvent)
                     });
-                    if (!response.ok) throw new Error('Failed to create event');
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error || 'Failed to create event');
+                    }
                     const result = await response.json();
+                    alert(result.message);
                     await fetchEvents();
                     eventSelector.value = result.id;
                     eventSelector.dispatchEvent(new Event('change'));
                     closeEventModal();
+                    document.getElementById('newEventName').value = '';
+                    document.getElementById('newStartDate').value = '';
+                    document.getElementById('newEndDate').value = '';
                 } catch (error) {
+                    console.error('Error creating event:', error);
                     alert(`Error: ${error.message}`);
                 }
             };
 
-            // --- Event Listeners ---
+            // Event Listeners
+            document.getElementById('bossName').addEventListener('change', (e) => {
+                const customBossNameDiv = document.getElementById('customBossNameDiv');
+                if (e.target.value === 'custom') {
+                    customBossNameDiv.classList.remove('hidden');
+                } else {
+                    customBossNameDiv.classList.add('hidden');
+                }
+            });
+
             eventSelector.addEventListener('change', (e) => loadBoardForEvent(e.target.value));
             tileForm.addEventListener('submit', saveTile);
             document.getElementById('cancelBtn').addEventListener('click', closeModal);
@@ -617,7 +763,7 @@
             document.getElementById('autoGenerateBtn').addEventListener('click', autoGenerateBoard);
             document.getElementById('saveBoardBtn').addEventListener('click', saveBoard);
 
-            // --- Initial Load ---
+            // Initial Load
             fetchAllGeneratorData();
             fetchEvents();
             renderGrid();
