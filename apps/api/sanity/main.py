@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from src.sanity.router import api_router
+from sanity.router import api_router
 
 app = FastAPI(
     title="Sanity API",

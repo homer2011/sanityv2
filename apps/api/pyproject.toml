@@ -4,9 +4,12 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "alembic>=1.17.2",
+    "asyncmy>=0.2.10",
+    "cryptography>=46.0.3",
     "fastapi>=0.128.0",
     "pydantic-settings>=2.12.0",
-    "python-dotenv>=1.2.1",
+    "sqlalchemy>=2.0.45",
     "uvicorn[standard]>=0.40.0",
 ]
 
@@ -17,10 +20,11 @@ dev = [
 ]
 
 [tool.taskipy.tasks]
-dev = "uvicorn src.sanity.main:app --reload --host 127.0.0.1 --port 8000"
+dev = "uvicorn sanity.main:app --reload --host 127.0.0.1 --port 8000"
 format = "ruff format ."
 lint = "ruff check ."
 lint_fix = "ruff check --fix ."
+migrate = "uv run alembic upgrade head"
 
 [tool.ruff]
 target-version = "py314"
@@ -28,3 +32,8 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"migrations/versions/*.py" = [
+    "E501" # Line too long
+]
