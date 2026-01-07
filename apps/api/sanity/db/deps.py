@@ -1,5 +1,7 @@
 from collections.abc import AsyncGenerator
+from typing import Annotated
 
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from sanity.db.core import async_session_factory
@@ -23,3 +25,6 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
 
         finally:
             await session.close()
+
+
+DatabaseSession = Annotated[AsyncSession, Depends(get_db_session)]  # type alias
