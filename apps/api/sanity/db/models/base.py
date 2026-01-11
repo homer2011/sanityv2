@@ -1,8 +1,18 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, func
+from sqlalchemy import DateTime, MetaData, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+my_metadata = MetaData(
+    naming_convention={
+        "ix": "ix_%(column_0_N_label)s",
+        "uq": "%(table_name)s_%(column_0_N_name)s_key",
+        "ck": "%(table_name)s_%(constraint_name)s_check",
+        "fk": "%(table_name)s_%(column_0_N_name)s_fkey",
+        "pk": "%(table_name)s_pkey",
+    }
+)
 
 
 class Base(DeclarativeBase):
@@ -12,7 +22,9 @@ class Base(DeclarativeBase):
     docs: https://docs.sqlalchemy.org/en/20/orm/mapping_api.html#sqlalchemy.orm.DeclarativeBase
     """
 
-    pass
+    __abstract__ = True
+
+    metadata = my_metadata
 
 
 class TimestampMixin:
