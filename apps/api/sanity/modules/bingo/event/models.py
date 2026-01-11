@@ -3,9 +3,10 @@ from enum import Enum
 
 from sqlalchemy import CheckConstraint, DateTime, Integer, String
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.db.models.base import Base, TimestampMixin
+from sanity.modules.bingo.board.models import Board
 
 
 class EventType(str, Enum):
@@ -67,3 +68,9 @@ class Event(Base, TimestampMixin):
             return EventStatus.ACTIVE
 
         return EventStatus.COMPLETED
+
+    board: Mapped["Board"] = relationship(
+        uselist=False,
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

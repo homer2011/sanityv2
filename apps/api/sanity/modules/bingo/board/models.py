@@ -2,7 +2,7 @@ from enum import Enum
 
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.db.models.base import Base, TimestampMixin
 
@@ -33,6 +33,13 @@ class Board(Base, TimestampMixin):
         Integer,
         nullable=False,
         default=5,
+    )
+
+    tiles: Mapped[list["Tile"]] = relationship(
+        uselist=True,
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        order_by="tile.row_idx, tile.col_idx",
     )
 
 
