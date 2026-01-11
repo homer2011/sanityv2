@@ -3,7 +3,7 @@ from sqlalchemy import select
 
 from sanity.db.deps import DatabaseSession
 
-router = APIRouter(prefix="/health")
+router = APIRouter(prefix="/health", tags=["Health Check"])
 
 
 @router.get("")
