@@ -32,6 +32,8 @@ class TileType(str, Enum):
 
 
 class TileCreate(BaseModel):
+    row_idx: int = Field(ge=0)
+    col_idx: int = Field(ge=0)
     title: str = Field(min_length=1, max_length=255)
     description: Optional[str] = None
     tile_type: TileType
@@ -40,8 +42,6 @@ class TileCreate(BaseModel):
 
 
 class TileUpdate(BaseModel):
-    row_idx: int = Field(ge=0)
-    col_idx: int = Field(ge=0)
     title: Optional[str] = Field(default=None, min_length=1, max_length=255)
     description: Optional[str] = None
     tile_type: Optional[TileType] = None
