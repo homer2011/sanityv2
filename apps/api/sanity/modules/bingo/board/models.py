@@ -39,7 +39,7 @@ class Board(Base, TimestampMixin):
         uselist=True,
         cascade="all, delete-orphan",
         passive_deletes=True,
-        order_by="tile.row_idx, tile.col_idx",
+        order_by="Tile.row_idx, Tile.col_idx",
     )
 
 
