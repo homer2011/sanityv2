@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,12 +25,21 @@ class BossRead(BaseModel):
     updated_at: Optional[datetime]
 
 
+class BossReadList(BaseModel):
+    items: list[BossRead]
+    total: int
+
+
 class BossReadWithItems(BossRead):
     items: list["ItemRead"]
 
 
+class BossReadWithItemsList(BaseModel):
+    items: list[BossReadWithItems]
+    total: int
+
+
 class ItemCreate(BaseModel):
-    boss_id: int
     name: str = Field(min_length=1, max_length=255)
     point_value: int = Field(ge=0)
     drop_rate: int = Field(gt=0)
@@ -52,3 +61,8 @@ class ItemRead(BaseModel):
     drop_rate: int
     created_at: datetime
     updated_at: Optional[datetime]
+
+
+class ItemReadList(BaseModel):
+    items: List[ItemRead]
+    total: int
