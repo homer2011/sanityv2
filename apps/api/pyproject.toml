@@ -23,7 +23,8 @@ dev = "uvicorn sanity.main:app --reload --host 127.0.0.1 --port 8000"
 format = "ruff format ."
 lint = "ruff check ."
 lint_fix = "ruff check --fix ."
-migrate = "uv run alembic upgrade head"
+db_migrate = "uv run alembic upgrade head"
+db_downgrade = "uv run alembic downgrade -1"
 
 [tool.ruff]
 target-version = "py314"
