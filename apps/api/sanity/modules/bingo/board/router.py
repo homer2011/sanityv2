@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from sanity.db.deps import DatabaseSession
+from sanity.db.deps import DatabaseDependency
 from sanity.modules.bingo.board.schema import (
     BoardReadWithTiles,
     BoardUpdate,
@@ -17,7 +17,7 @@ router = APIRouter(tags=["Bingo Boards"])
     response_model=BoardReadWithTiles,
 )
 async def update_board_by_id(
-    db_session: DatabaseSession,
+    db_session: DatabaseDependency,
     board_id: int,
     body: BoardUpdate,
 ):
@@ -30,7 +30,7 @@ async def update_board_by_id(
     response_model=TileRead,
 )
 async def create_tile_by_board_id(
-    db_session: DatabaseSession,
+    db_session: DatabaseDependency,
     board_id: int,
     body: TileCreate,
 ):
@@ -42,7 +42,7 @@ async def create_tile_by_board_id(
     response_model=TileRead,
 )
 async def get_tile_by_id(
-    db_session: DatabaseSession,
+    db_session: DatabaseDependency,
     tile_id: int,
 ):
     pass
@@ -53,7 +53,7 @@ async def get_tile_by_id(
     response_model=TileRead,
 )
 async def update_tile_by_id(
-    db_session: DatabaseSession,
+    db_session: DatabaseDependency,
     tile_id: int,
     body: TileUpdate,
 ):
@@ -66,7 +66,7 @@ async def update_tile_by_id(
     response_model=None,
 )
 async def delete_tile_by_id(
-    db_session: DatabaseSession,
+    db_session: DatabaseDependency,
     tile_id: int,
 ):
     pass

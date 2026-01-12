@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from sanity.db.deps import DatabaseSession
+from sanity.db.deps import DatabaseDependency
 
 router = APIRouter(prefix="/health", tags=["Health Check"])
 
 
 @router.get("")
 async def health_check(
-    session: DatabaseSession,
+    session: DatabaseDependency,
 ) -> dict[str, str]:
     try:
         await session.execute(select(1))

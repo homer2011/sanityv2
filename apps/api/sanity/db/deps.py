@@ -27,4 +27,4 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 
-DatabaseSession = Annotated[AsyncSession, Depends(get_db_session)]  # type alias
+DatabaseDependency = Annotated[AsyncSession, Depends(get_db_session)]  # type alias
