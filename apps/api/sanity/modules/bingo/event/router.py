@@ -4,7 +4,7 @@ from sanity.db.deps import DatabaseSession
 
 from .schema import EventCreate, EventRead, EventReadList, EventReadWithBoard, EventUpdate
 
-router = APIRouter(prefix="/events")
+router = APIRouter(prefix="/events", tags=["Bingo Events"])
 
 
 @router.get("", response_model=EventReadList)

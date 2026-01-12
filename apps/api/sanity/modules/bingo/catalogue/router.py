@@ -13,7 +13,7 @@ from .schema import (
     ItemUpdate,
 )
 
-router = APIRouter(prefix="/catalogue")
+router = APIRouter(prefix="/catalogue", tags=["Bingo Catalogue"])
 
 
 @router.get(

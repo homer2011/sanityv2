@@ -9,7 +9,7 @@ from sanity.modules.bingo.board.schema import (
     TileUpdate,
 )
 
-router = APIRouter()
+router = APIRouter(tags=["Bingo Boards"])
 
 
 @router.patch(
