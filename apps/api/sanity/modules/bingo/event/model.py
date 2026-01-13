@@ -5,8 +5,8 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.db.models import RecordModel
-from sanity.modules.bingo.board.models import Board
 
+from ..board.model import Board
 from .enums import EventStatus, EventType
 
 
