@@ -1,16 +1,10 @@
-from enum import Enum
-
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from sanity.db.models import RecordModel
 
-
-class TileType(str, Enum):
-    KC = "KC"
-    UNIQUE = "UNIQUE"
-    POINTS = "POINTS"
+from .enums import TileType
 
 
 class Tile(RecordModel):

@@ -1,14 +1,9 @@
 from datetime import datetime
-from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
-class TileType(str, Enum):
-    KC = "KC"
-    UNIQUE = "UNIQUE"
-    POINTS = "POINTS"
+from .enums import TileType
 
 
 class TileCreate(BaseModel):
