@@ -1,30 +1,9 @@
-from decimal import Decimal
-
-from sqlalchemy import ForeignKey, Integer, Numeric, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.db.models import RecordModel
 
-
-class Boss(RecordModel):
-    __tablename__ = "bosses"
-
-    name: Mapped[str] = mapped_column(
-        String(255),
-        unique=True,
-        nullable=False,
-    )
-
-    ehb: Mapped[Decimal] = mapped_column(
-        Numeric(10, 2),
-        nullable=False,
-    )
-
-    items: Mapped[list["Item"]] = relationship(
-        back_populates="boss",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-    )
+from ..boss.model import Boss
 
 
 class Item(RecordModel):

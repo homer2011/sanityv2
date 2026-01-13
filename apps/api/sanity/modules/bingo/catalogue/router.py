@@ -2,23 +2,15 @@ from fastapi import APIRouter, status
 
 from sanity.db.core import DatabaseSession
 
-from .schemas import (
-    BossCreate,
-    BossRead,
-    BossReadWithItems,
-    BossReadWithItemsList,
-    BossUpdate,
-    ItemCreate,
-    ItemRead,
-    ItemUpdate,
-)
+from ..boss.schemas import BossCreate, BossRead, BossReadWithItems, BossUpdate
+from ..item.schemas import ItemCreate, ItemRead, ItemUpdate
 
 router = APIRouter(prefix="/catalogue", tags=["Bingo Catalogue"])
 
 
 @router.get(
     "/bosses",
-    response_model=BossReadWithItemsList,
+    response_model=BossReadWithItems,
 )
 async def list_bosses(
     db_session: DatabaseSession,
@@ -40,7 +32,7 @@ async def create_boss(
 
 @router.get(
     "/bosses/{boss_id}",
-    response_model=BossReadWithItems,
+    response_model=BossRead,
 )
 async def get_boss_by_id(
     db_session: DatabaseSession,

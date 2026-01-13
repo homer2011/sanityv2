@@ -1,0 +1,29 @@
+from decimal import Decimal
+
+from sqlalchemy import Numeric, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from sanity.db.models import RecordModel
+
+from ..item.model import Item
+
+
+class Boss(RecordModel):
+    __tablename__ = "bosses"
+
+    name: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        nullable=False,
+    )
+
+    ehb: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2),
+        nullable=False,
+    )
+
+    items: Mapped[list["Item"]] = relationship(
+        back_populates="boss",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
