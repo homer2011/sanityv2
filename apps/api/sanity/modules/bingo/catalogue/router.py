@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 
 from sanity.db.core import DatabaseSession
 
-from .schema import (
+from .schemas import (
     BossCreate,
     BossRead,
     BossReadWithItems,

@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 
 from sanity.db.core import DatabaseSession
 
-from .schema import EventCreate, EventReadList, EventReadWithBoard, EventUpdate
+from .schemas import EventCreate, EventReadList, EventReadWithBoard, EventUpdate
 
 router = APIRouter(prefix="/events", tags=["Bingo Events"])
 

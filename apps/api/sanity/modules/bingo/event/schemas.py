@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from sanity.modules.bingo.board.schema import BoardReadWithTiles
+from sanity.modules.bingo.board.schemas import BoardReadWithTiles
 
 
 class EventType(str, Enum):

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, status
 
 from sanity.db.core import DatabaseSession
-from sanity.modules.bingo.board.schema import (
+
+from .schemas import (
     BoardReadWithTiles,
     BoardUpdate,
     TileCreate,
