@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, Integer, MetaData, func
+from sqlalchemy import DateTime, Integer, MetaData
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 my_metadata = MetaData(
@@ -54,7 +54,7 @@ class TimestampModel(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        server_default=func.now(),
+        default=lambda: datetime.now(UTC),
         index=True,
     )
 
@@ -62,7 +62,7 @@ class TimestampModel(Base):
         DateTime(timezone=True),
         nullable=True,
         default=None,
-        onupdate=func.now(),
+        onupdate=lambda: datetime.now(UTC),
     )
 
 
