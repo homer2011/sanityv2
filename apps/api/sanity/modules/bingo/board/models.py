@@ -8,11 +8,11 @@ from sanity.db.models import RecordModel
 
 
 class Board(RecordModel):
-    __tablename__ = "board"
+    __tablename__ = "boards"
     __table_args__ = (UniqueConstraint("event_id"),)
 
     event_id: Mapped[int] = mapped_column(
-        ForeignKey("event.id", ondelete="CASCADE"),
+        ForeignKey("events.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -48,7 +48,7 @@ class Tile(RecordModel):
     __table_args__ = (UniqueConstraint("board_id", "row_idx", "col_idx"),)
 
     board_id: Mapped[int] = mapped_column(
-        ForeignKey("board.id", ondelete="CASCADE"),
+        ForeignKey("boards.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )

@@ -21,7 +21,7 @@ class EventStatus(str, Enum):
 
 
 class Event(RecordModel):
-    __tablename__ = "event"
+    __tablename__ = "events"
     __table_args__ = (CheckConstraint("ends_at > starts_at", name="event_schedule_valid"),)
 
     name: Mapped[str] = mapped_column(

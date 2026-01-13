@@ -7,7 +7,7 @@ from sanity.db.models import RecordModel
 
 
 class Boss(RecordModel):
-    __tablename__ = "boss"
+    __tablename__ = "bosses"
 
     name: Mapped[str] = mapped_column(
         String(255),
@@ -28,11 +28,11 @@ class Boss(RecordModel):
 
 
 class Item(RecordModel):
-    __tablename__ = "item"
+    __tablename__ = "items"
     __table_args__ = (UniqueConstraint("boss_id", "name"),)
 
     boss_id: Mapped[int] = mapped_column(
-        ForeignKey("boss.id", ondelete="CASCADE"),
+        ForeignKey("bosses.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
