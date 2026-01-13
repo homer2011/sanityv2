@@ -1,5 +1,4 @@
 from datetime import UTC, datetime
-from enum import Enum
 
 from sqlalchemy import CheckConstraint, DateTime, String
 from sqlalchemy import Enum as SAEnum
@@ -8,16 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sanity.db.models import RecordModel
 from sanity.modules.bingo.board.models import Board
 
-
-class EventType(str, Enum):
-    TRADITIONAL = "TRADITIONAL"
-    LEVELS = "LEVELS"
-
-
-class EventStatus(str, Enum):
-    SCHEDULED = "SCHEDULED"  # Editable
-    ACTIVE = "ACTIVE"  # Moderation only
-    COMPLETED = "COMPLETED"  # Read only
+from .enums import EventStatus, EventType
 
 
 class Event(RecordModel):

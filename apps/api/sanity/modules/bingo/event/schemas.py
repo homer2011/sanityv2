@@ -1,21 +1,11 @@
 from datetime import datetime
-from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from sanity.modules.bingo.board.schemas import BoardReadWithTiles
 
-
-class EventType(str, Enum):
-    TRADITIONAL = "TRADITIONAL"
-    LEVELS = "LEVELS"
-
-
-class EventStatus(str, Enum):
-    SCHEDULED = "SCHEDULED"
-    ACTIVE = "ACTIVE"
-    COMPLETED = "COMPLETED"
+from .enums import EventStatus, EventType
 
 
 class EventCreate(BaseModel):
