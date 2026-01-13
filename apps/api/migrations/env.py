@@ -7,7 +7,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from sanity.config import settings
-from sanity.db.models.base import Base
+from sanity.db.models import Base
 from sanity.modules.bingo.board.models import Board, Tile  # noqa: F401
 from sanity.modules.bingo.catalogue.models import Boss, Item  # noqa: F401
 from sanity.modules.bingo.event.models import Event  # noqa: F401

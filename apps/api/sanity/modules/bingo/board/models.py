@@ -4,7 +4,7 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sanity.db.models.base import Base, TimestampMixin
+from sanity.db.models import Base, TimestampMixin
 
 
 class Board(Base, TimestampMixin):

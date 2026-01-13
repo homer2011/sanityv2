@@ -3,7 +3,7 @@ from decimal import Decimal
 from sqlalchemy import ForeignKey, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sanity.db.models.base import Base, TimestampMixin
+from sanity.db.models import Base, TimestampMixin
 
 
 class Boss(Base, TimestampMixin):
