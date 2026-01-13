@@ -1,17 +1,18 @@
 from fastapi import APIRouter, status
 
-from sanity.common.pagination.deps import PageDependency
-from sanity.db.deps import DatabaseDependency
+from sanity.db.core import DatabaseDependency
 
-from .schema import EventCreate, EventRead, EventReadList, EventReadWithBoard, EventUpdate
+from .schema import EventCreate, EventReadList, EventReadWithBoard, EventUpdate
 
 router = APIRouter(prefix="/events", tags=["Bingo Events"])
 
 
-@router.get("", response_model=EventReadList)
+@router.get(
+    "",
+    response_model=EventReadList,
+)
 async def list_events(
     db_session: DatabaseDependency,
-    page: PageDependency,
 ):
     pass
 
@@ -19,7 +20,7 @@ async def list_events(
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
-    response_model=EventRead,
+    response_model=EventReadWithBoard,
 )
 async def create_event(
     db_session: DatabaseDependency,
@@ -28,7 +29,10 @@ async def create_event(
     pass
 
 
-@router.get("/{event_id}", response_model=EventReadWithBoard)
+@router.get(
+    "/{event_id}",
+    response_model=EventReadWithBoard,
+)
 async def get_event_by_id(
     db_session: DatabaseDependency,
     event_id: int,
@@ -36,7 +40,10 @@ async def get_event_by_id(
     pass
 
 
-@router.patch("/{event_id}", response_model=EventRead)
+@router.patch(
+    "/{event_id}",
+    response_model=EventReadWithBoard,
+)
 async def update_event_by_id(
     db_session: DatabaseDependency,
     event_id: int,

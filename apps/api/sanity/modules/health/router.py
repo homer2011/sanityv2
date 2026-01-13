@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from sanity.db.deps import DatabaseDependency
+from sanity.db.core import DatabaseDependency
 
 router = APIRouter(prefix="/health", tags=["Health Check"])
 
