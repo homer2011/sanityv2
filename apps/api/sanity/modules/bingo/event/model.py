@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, DateTime, String
 from sqlalchemy import Enum as SAEnum
@@ -6,8 +7,10 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.db.models import RecordModel
 
-from ..board.model import Board
 from .enums import EventStatus, EventType
+
+if TYPE_CHECKING:
+    from ..board.model import Board
 
 
 class Event(RecordModel):

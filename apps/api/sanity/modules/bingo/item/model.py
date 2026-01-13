@@ -1,9 +1,12 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.db.models import RecordModel
 
-from ..boss.model import Boss
+if TYPE_CHECKING:
+    from ..boss.model import Boss
 
 
 class Item(RecordModel):

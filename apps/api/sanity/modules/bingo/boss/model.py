@@ -1,11 +1,13 @@
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.db.models import RecordModel
 
-from ..item.model import Item
+if TYPE_CHECKING:
+    from ..item.model import Item
 
 
 class Boss(RecordModel):
