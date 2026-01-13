@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from sanity.db.core import DatabaseDependency
+from sanity.db.core import DatabaseSession
 
 from .schema import EventCreate, EventReadList, EventReadWithBoard, EventUpdate
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/events", tags=["Bingo Events"])
     response_model=EventReadList,
 )
 async def list_events(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
 ):
     pass
 
@@ -23,7 +23,7 @@ async def list_events(
     response_model=EventReadWithBoard,
 )
 async def create_event(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     body: EventCreate,
 ):
     pass
@@ -34,7 +34,7 @@ async def create_event(
     response_model=EventReadWithBoard,
 )
 async def get_event_by_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     event_id: int,
 ):
     pass
@@ -45,7 +45,7 @@ async def get_event_by_id(
     response_model=EventReadWithBoard,
 )
 async def update_event_by_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     event_id: int,
     body: EventUpdate,
 ):
@@ -58,7 +58,7 @@ async def update_event_by_id(
     response_model=None,
 )
 async def delete_event_by_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     event_id: int,
 ):
     pass

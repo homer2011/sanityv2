@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status
 
-from sanity.db.core import DatabaseDependency
+from sanity.db.core import DatabaseSession
 
 from .schema import (
     BossCreate,
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/catalogue", tags=["Bingo Catalogue"])
     response_model=BossReadWithItemsList,
 )
 async def list_bosses(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
 ):
     pass
 
@@ -32,7 +32,7 @@ async def list_bosses(
     response_model=BossRead,
 )
 async def create_boss(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     body: BossCreate,
 ):
     pass
@@ -43,7 +43,7 @@ async def create_boss(
     response_model=BossReadWithItems,
 )
 async def get_boss_by_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     boss_id: int,
 ):
     pass
@@ -54,7 +54,7 @@ async def get_boss_by_id(
     response_model=BossRead,
 )
 async def update_boss_by_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     boss_id: int,
     body: BossUpdate,
 ):
@@ -67,7 +67,7 @@ async def update_boss_by_id(
     response_model=None,
 )
 async def delete_boss_by_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     boss_id: int,
 ):
     pass
@@ -79,7 +79,7 @@ async def delete_boss_by_id(
     response_model=ItemRead,
 )
 async def create_item_by_boss_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     boss_id: int,
     body: ItemCreate,
 ):
@@ -91,7 +91,7 @@ async def create_item_by_boss_id(
     response_model=ItemRead,
 )
 async def get_item_by_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     item_id: int,
 ):
     pass
@@ -102,7 +102,7 @@ async def get_item_by_id(
     response_model=ItemRead,
 )
 async def update_item_by_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     item_id: int,
     body: ItemUpdate,
 ):
@@ -115,7 +115,7 @@ async def update_item_by_id(
     response_model=None,
 )
 async def delete_item_by_id(
-    db_session: DatabaseDependency,
+    db_session: DatabaseSession,
     item_id: int,
 ):
     pass
