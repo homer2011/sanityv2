@@ -3,17 +3,11 @@ from decimal import Decimal
 from sqlalchemy import ForeignKey, Integer, Numeric, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sanity.db.models import Base, TimestampMixin
+from sanity.db.models import RecordModel
 
 
-class Boss(Base, TimestampMixin):
+class Boss(RecordModel):
     __tablename__ = "boss"
-
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
 
     name: Mapped[str] = mapped_column(
         String(255),
@@ -33,15 +27,9 @@ class Boss(Base, TimestampMixin):
     )
 
 
-class Item(Base, TimestampMixin):
+class Item(RecordModel):
     __tablename__ = "item"
     __table_args__ = (UniqueConstraint("boss_id", "name"),)
-
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
 
     boss_id: Mapped[int] = mapped_column(
         ForeignKey("boss.id", ondelete="CASCADE"),

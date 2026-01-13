@@ -4,18 +4,12 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sanity.db.models import Base, TimestampMixin
+from sanity.db.models import RecordModel
 
 
-class Board(Base, TimestampMixin):
+class Board(RecordModel):
     __tablename__ = "board"
     __table_args__ = (UniqueConstraint("event_id"),)
-
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
 
     event_id: Mapped[int] = mapped_column(
         ForeignKey("event.id", ondelete="CASCADE"),
@@ -49,15 +43,9 @@ class TileType(str, Enum):
     POINTS = "POINTS"
 
 
-class Tile(Base, TimestampMixin):
+class Tile(RecordModel):
     __tablename__ = "tile"
     __table_args__ = (UniqueConstraint("board_id", "row_idx", "col_idx"),)
-
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
 
     board_id: Mapped[int] = mapped_column(
         ForeignKey("board.id", ondelete="CASCADE"),

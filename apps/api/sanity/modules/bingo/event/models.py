@@ -1,11 +1,11 @@
 from datetime import UTC, datetime
 from enum import Enum
 
-from sqlalchemy import CheckConstraint, DateTime, Integer, String
+from sqlalchemy import CheckConstraint, DateTime, String
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sanity.db.models import Base, TimestampMixin
+from sanity.db.models import RecordModel
 from sanity.modules.bingo.board.models import Board
 
 
@@ -20,15 +20,9 @@ class EventStatus(str, Enum):
     COMPLETED = "COMPLETED"  # Read only
 
 
-class Event(Base, TimestampMixin):
+class Event(RecordModel):
     __tablename__ = "event"
     __table_args__ = (CheckConstraint("ends_at > starts_at", name="event_schedule_valid"),)
-
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        autoincrement=True,
-    )
 
     name: Mapped[str] = mapped_column(
         String(255),

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import DateTime, MetaData, func
+from sqlalchemy import DateTime, Integer, MetaData, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 my_metadata = MetaData(
@@ -27,9 +27,23 @@ class Base(DeclarativeBase):
     metadata = my_metadata
 
 
-class TimestampMixin:
+class IdModel(Base):
     """
-    Mixin to add UTC auditing timestamps to DB models.
+    Base model to include support for an integer-based primary key.
+    """
+
+    __abstract__ = True
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
+
+
+class TimestampModel(Base):
+    """
+    Base model to include support for UTC auditing timestamps.
 
     - `created_at` is set once on INSERT
     - `updated_at` is automatically bumped on UPDATE
@@ -50,3 +64,12 @@ class TimestampMixin:
         default=None,
         onupdate=func.now(),
     )
+
+
+class RecordModel(IdModel, TimestampModel):
+    """
+    Base model to include support for both an integer-based primary key
+    and UTC auditing timestamp fields.
+    """
+
+    __abstract__ = True
