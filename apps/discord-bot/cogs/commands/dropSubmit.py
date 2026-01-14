@@ -232,10 +232,10 @@ class submissionAcceptor(View):  # for council / drop acceptors etc in #posted-d
                     else:
                         if "*" in submissionTable[0][2] and trial_count > 0:
                             member_id = int(member)
-                            point_gain = min(200, math.ceil((drop_value / (len(participants)+non_clannies)) * 2))
+                            point_gain = min(250, math.ceil((drop_value / (len(participants)+non_clannies)) * 2))
                         else:
                             member_id = int(member)
-                            point_gain = min(200, math.ceil((drop_value / (len(participants) + non_clannies))))
+                            point_gain = min(250, math.ceil((drop_value / (len(participants) + non_clannies))))
 
                     #adapt points to cap at 500
                     if leaguePointsGained >= 500: #cap at 500
@@ -262,10 +262,10 @@ class submissionAcceptor(View):  # for council / drop acceptors etc in #posted-d
                     else:
                         if "*" in submissionTable[0][2] and trial_count > 0:
                             member_id = int(member)
-                            point_gain = min(200, math.ceil((drop_value / (len(participants)+non_clannies)) * 2))
+                            point_gain = min(250, math.ceil((drop_value / (len(participants)+non_clannies)) * 2))
                         else:
                             member_id = int(member)
-                            point_gain = min(200, math.ceil((drop_value / (len(participants) + non_clannies))))
+                            point_gain = min(250, math.ceil((drop_value / (len(participants) + non_clannies))))
                     insert_Point_Tracker(member_id, point_gain, now, f"{drop_name},{drop_value},{(len(participants) + non_clannies)}", submissionId)
                     update_user_points(member_id,point_gain)
 
@@ -459,7 +459,7 @@ class submissionButtons(View):  # button for user
                 sql_message.append(f"{clannie_id}*")
 
             else:
-                cap = 200
+                cap = 250
                 points = min(trial_multiplied_amount, cap)
 
                 embed_message += f"<@{clannie_id}>+`{points}` "
@@ -651,7 +651,7 @@ class acceptorEditSubmissionModal(Modal):  # modal to edit msg
                 sql_message.append(f"{clannie_id}*")
 
             else:
-                cap = 200
+                cap = 250
                 points = min(trial_multiplied_amount, cap)
 
                 embed_message += f"<@{clannie_id}>+`{points}` "
