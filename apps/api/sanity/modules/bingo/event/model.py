@@ -57,6 +57,7 @@ class Event(RecordModel):
         return EventStatus.COMPLETED
 
     board: Mapped["Board"] = relationship(
+        "Board",
         uselist=False,
         cascade="all, delete-orphan",
         passive_deletes=True,

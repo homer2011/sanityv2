@@ -1,3 +1,5 @@
+import sanity.db.import_models  # noqa
+
 from fastapi import FastAPI
 
 from sanity.router import api_router

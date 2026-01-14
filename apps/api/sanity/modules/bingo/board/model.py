@@ -29,6 +29,7 @@ class Board(RecordModel):
     )
 
     tiles: Mapped[list["Tile"]] = relationship(
+        "Tile",
         uselist=True,
         cascade="all, delete-orphan",
         passive_deletes=True,
