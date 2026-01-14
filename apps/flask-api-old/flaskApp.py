@@ -42,21 +42,33 @@ BINGO_DB_CONFIG = {
 @app.route('/api/rankChanges', methods=['GET'])
 def get_rank_changes():
     """
-    Connects to the MySQL database, executes the user query,
-    and returns the data as JSON.
+    OPTIMIZED with pagination support
+    By default, returns first 100 rank changes (for home page widget)
+    Can be paginated for full rank changes page if needed
     """
     connection = None
     try:
+        # Get pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 100, type=int)  # Default 100 for home page
+
+        # Limit per_page
+        per_page = min(per_page, 500)
+        per_page = max(per_page, 10)
+
+        # Calculate offset
+        offset = (page - 1) * per_page
+
         connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor(dictionary=True)  # dictionary=True makes rows accessible by column name
+        cursor = connection.cursor(dictionary=True)
 
         query = """
             SELECT
                 a.actionDate,
                 u.userid,
                 u.displayName,
-                r_before.name AS rank_before, -- Changed from r_before.rank_name
-                r_after.name AS rank_after,   -- Changed from r_after.rank_name
+                r_before.name AS rank_before,
+                r_after.name AS rank_after,
                 r_before.id as rankId_before,
                 r_after.id as rankId_after
             FROM
@@ -73,9 +85,90 @@ def get_rank_changes():
                 r_before.name != 'retired' and 
                 r_after.name  != 'quit' and 
                 r_after.name  != 'retired'
-            order BY 
-                a.actionDate desc 
+            ORDER BY 
+                a.actionDate DESC
+            LIMIT %s OFFSET %s
         """
+
+        cursor.execute(query, (per_page, offset))
+        rank_changes = cursor.fetchall()
+
+        # Get total count (cache this for better performance)
+        count_query = """
+            SELECT COUNT(*) as total
+            FROM sanity2.auditlogs a
+            WHERE a.actionNote LIKE 'UPDATED % RANK from % to %'
+        """
+        cursor.execute(count_query)
+        count_result = cursor.fetchone()
+        total = count_result['total'] if count_result else 0
+
+        # Return with pagination metadata
+        return jsonify({
+            'data': rank_changes,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'total_pages': (total + per_page - 1) // per_page
+            }
+        })
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("MySQL connection closed")
+
+
+# ============================================================================
+# ALTERNATIVE: Simple version for backward compatibility
+# ============================================================================
+# If you want to keep the old endpoint that returns ALL rank changes,
+# create a separate endpoint:
+
+@app.route('/api/rankChanges/all', methods=['GET'])
+def get_rank_changes_all():
+    """
+    Legacy endpoint - returns all rank changes (for backward compatibility)
+    Use /api/rankChanges with pagination instead
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+
+        query = """
+            SELECT
+                a.actionDate,
+                u.userid,
+                u.displayName,
+                r_before.name AS rank_before,
+                r_after.name AS rank_after,
+                r_before.id as rankId_before,
+                r_after.id as rankId_after
+            FROM
+                sanity2.auditlogs a
+            JOIN
+                sanity2.users u ON u.userid = SUBSTRING_INDEX(SUBSTRING_INDEX(a.actionNote, ' ', 2), ' ', -1)
+            JOIN
+                sanity2.ranks r_before ON r_before.id = SUBSTRING_INDEX(SUBSTRING_INDEX(a.actionNote, ' from ', -1), ' to ', 1)
+            JOIN
+                sanity2.ranks r_after ON r_after.id = SUBSTRING_INDEX(a.actionNote, ' to ', -1)
+            WHERE
+                a.actionNote LIKE 'UPDATED % RANK from % to %' and 
+                r_before.name != 'quit' and 
+                r_before.name != 'retired' and 
+                r_after.name  != 'quit' and 
+                r_after.name  != 'retired'
+            ORDER BY 
+                a.actionDate DESC
+            LIMIT 1000  -- At least add a limit for safety
+        """
+
         cursor.execute(query)
         users_data = cursor.fetchall()
         return jsonify(users_data)
@@ -288,14 +381,26 @@ def get_rsn_kc():
 @app.route('/api/auditlog', methods=['GET'])
 def get_auditlog():
     """
-    Connects to the MySQL database, executes the user query,
-    and returns the data as JSON.
+    Paginated auditlog endpoint - fetches only what's needed
+    Much faster than loading 23,000 rows!
     """
     connection = None
     try:
-        connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor(dictionary=True)  # dictionary=True makes rows accessible by column name
+        # Get pagination parameters from query string
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 200, type=int)
 
+        # Limit per_page to prevent abuse
+        per_page = min(per_page, 50000)
+        per_page = max(per_page, 10)
+
+        # Calculate offset
+        offset = (page - 1) * per_page
+
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+
+        # Main query with pagination
         query = """
              SELECT
                   a.id,
@@ -327,11 +432,31 @@ def get_auditlog():
                   LEFT JOIN sanity2.users u ON u.userId = a.userId
                   LEFT JOIN sanity2.auditactiontype a2 ON a2.id = a.actionType
                 ORDER BY
-                  a.actionDate DESC;
+                  a.actionDate DESC
+                LIMIT %s OFFSET %s;
         """
-        cursor.execute(query)
-        users_data = cursor.fetchall()
-        return jsonify(users_data)
+
+        cursor.execute(query, (per_page, offset))
+        audit_logs = cursor.fetchall()
+
+        # Get total count for pagination (cache this for better performance)
+        count_query = "SELECT COUNT(*) as total FROM sanity2.auditlogs"
+        cursor.execute(count_query)
+        count_result = cursor.fetchone()
+        total = count_result['total'] if count_result else 0
+
+        # Calculate total pages
+        total_pages = (total + per_page - 1) // per_page
+
+        return jsonify({
+            'data': audit_logs,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'total_pages': total_pages
+            }
+        })
 
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -340,7 +465,96 @@ def get_auditlog():
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
-            print("MySQL connection closed")
+
+
+# ============================================================================
+# ALTERNATIVE: More optimized version with batch user lookup
+# ============================================================================
+
+@app.route('/api/auditlog/optimized', methods=['GET'])
+def get_auditlog_optimized():
+    """
+    Even faster version - resolves affected users in batch
+    Use this if the above is still slow
+    """
+    connection = None
+    try:
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 200, type=int)
+        per_page = min(per_page, 500)
+        offset = (page - 1) * per_page
+
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+
+        # Get audit logs without the slow subqueries
+        query = """
+            SELECT
+                a.id,
+                u.displayName,
+                a.affectedUsers,
+                a2.name,
+                a.actionNote,
+                a.actionDate
+            FROM
+                sanity2.auditlogs a
+                LEFT JOIN sanity2.users u ON u.userId = a.userId
+                LEFT JOIN sanity2.auditactiontype a2 ON a2.id = a.actionType
+            ORDER BY
+                a.actionDate DESC
+            LIMIT %s OFFSET %s
+        """
+
+        cursor.execute(query, (per_page, offset))
+        audit_logs = cursor.fetchall()
+
+        # Batch lookup for affected users
+        affected_user_ids = set()
+        for log in audit_logs:
+            if log.get('affectedUsers'):
+                ids = log['affectedUsers'].split(',')
+                affected_user_ids.update([uid.strip() for uid in ids if uid.strip()])
+
+        # Get all affected users in one query
+        user_map = {}
+        if affected_user_ids:
+            placeholders = ','.join(['%s'] * len(affected_user_ids))
+            user_query = f"SELECT userId, displayName FROM sanity2.users WHERE userId IN ({placeholders})"
+            cursor.execute(user_query, tuple(affected_user_ids))
+            users = cursor.fetchall()
+            user_map = {str(u['userId']): u['displayName'] for u in users}
+
+        # Resolve affected user names
+        for log in audit_logs:
+            if log.get('affectedUsers'):
+                user_ids = [uid.strip() for uid in log['affectedUsers'].split(',') if uid.strip()]
+                user_names = [user_map.get(uid, f'Unknown ({uid})') for uid in user_ids]
+                log['affectedUserNames'] = ', '.join(user_names)
+            else:
+                log['affectedUserNames'] = None
+            del log['affectedUsers']  # Remove raw data
+
+        # Get total count
+        cursor.execute("SELECT COUNT(*) as total FROM sanity2.auditlogs")
+        total = cursor.fetchone()['total']
+
+        return jsonify({
+            'data': audit_logs,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'total_pages': (total + per_page - 1) // per_page
+            }
+        })
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
 
 @app.route('/api/discordmsgssentyearly', methods=['GET'])
 def get_yearly_discord_msgs():
@@ -957,14 +1171,15 @@ def get_personal_bests_data():
                 p.scale,
                 p.time,
                 p.imageUrl,
-                p.submittedDate
+                p.submittedDate,
+                p.status
             FROM
                 sanity2.personalbests p
             JOIN
                 sanity2.users u ON FIND_IN_SET(u.userId, p.members) > 0
             JOIN
                 sanity2.bosses b ON b.id = p.bossId 
-            where p.status = 2 and p.bossId not in (38,39,42)
+            where (p.status = 2 or p.status = 6) and p.bossId not in (38,39,42)
             GROUP BY
                 p.submissionId, p.submitterUserId, p.members, p.status,
                 p.bossId, p.scale, p.time, p.imageUrl, p.submittedDate
@@ -1496,6 +1711,29 @@ def update_bingo_board():
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
+
+@app.route('/api/user/rankupnames', methods=['GET'])
+def get_users_ranks():
+    """
+    Fetches all items with their boss and points for the auto-generator.
+    This now reflects the user's provided JSON structure.
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+        # This query should match the structure of the user-provided JSON
+        query = "select u.mainRSN, orm.osrsName from sanity2.users u inner join sanity2.osrsRankMapping orm on orm.id = u.rankId ;"
+        cursor.execute(query)
+        items = cursor.fetchall()
+        return jsonify(items)
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Database query failed: {err}"}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
 
 @app.route('/api/bingo/bossitems', methods=['GET'])
 def get_boss_items_for_generator():

@@ -204,12 +204,13 @@ async def table_table_searcher(ctx : discord.AutocompleteContext): #gets column 
     except:
         print("lol its fucked")
 
-def updateDropValue(dropName:str, newDropValue : int):
+
+def updateDropValue(dropName: str, newDropValue: int):
     mycursor.execute(
-        f"update sanity2.drops set value = {newDropValue} where name = '{dropName}'"
+        "UPDATE sanity2.drops SET value = %s WHERE name = %s",
+        (newDropValue, dropName)
     )
     db.commit()
-
 
 class awardsVoteButton(View):
     def __init__(self):
@@ -799,11 +800,11 @@ class Admin(commands.Cog):
             "Timezone:",
             "\n**Timezone:**\n")
         application = application.replace("Tell us about yourself:", "\n**Tell us about yourself:**\n")
-        application = application.replace("What content do you currently do in game? Please be specific to the scale and role that you do:",
-                                          "\n**What content do you currently do in game? Please be specific to the scale and role that you do:**\n")
-        application = application.replace("Previous clans and why you left (PvM/PvP/Social/etc.):",
-                                          "\n**Previous clans and why you left (PvM/PvP/Social/etc.):**\n")
-        application = application.replace("Have you potted with any current Sanity members? Please list if applicable", "\n**Have you potted with any current Sanity members? Please list if applicable**\n")
+        application = application.replace("What is your main content? Please be specific to the scale and role that you do:",
+                                          "\n**What is your main content? Please be specific to the scale and role that you do:**\n")
+        application = application.replace("Previous clans and why you left:",
+                                          "\n**Previous clans and why you left:**\n")
+        application = application.replace("Do you know and have potted with any current Sanity members? Please list if applicable:", "\n**Do you know and have potted with any current Sanity members? Please list if applicable:**\n")
         application = application.replace("Have you read the clan-rules ?:", "\n**Have you read the clan-rules ?:**\n")
         application = application.replace("Would you like to add anything?", "\n**Would you like to add anything?**\n")
         #new thingy
