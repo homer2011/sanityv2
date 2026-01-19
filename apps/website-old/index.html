@@ -158,6 +158,7 @@
                 <ul class="absolute invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-300 bg-custom-blue-700 text-white py-2 rounded-md shadow-lg w-48 min-w-max top-full left-0 z-10">
                     <li><a href="#approved-stats" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('approved-stats')">Approved Stats</a></li>
                     <li><a href="#userprofile" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('userprofile')">User Profile</a></li>
+                    <li><a href="#compare" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('compare')">Compare Profiles</a></li>
                     <li><a href="#halloffame" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('halloffame')">Hall of Fame</a></li>
                     <li><a href="#pbhiscores" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('pbhiscores')">PB Hiscores</a></li>
                     <li><a href="#auditlog" class="block px-4 py-2 hover:bg-custom-blue-600 transition-colors duration-200" onclick="showPage('auditlog')">Audit Log</a></li>
@@ -173,7 +174,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 space-y-6">
             <div class="bg-gray-800 rounded-lg shadow-md overflow-hidden flex items-center justify-center">
-                <img src="https://i.imgur.com/yrepXwU.png" alt="Sanity Clan Banner" class="w-full h-full object-cover">
+                <img src="/icons/homepage.png" alt="Sanity Clan Banner" class="w-full h-full object-cover">
             </div>
 
             <div class="bg-gray-800 p-6 rounded-lg shadow-md">
@@ -887,6 +888,182 @@
             </div>
         </section>
 
+        <!-- Profile Comparison Page Content -->
+        <section id="compare-page" class="page-content hidden">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+                <h1 class="text-3xl font-bold text-custom-blue-400 mb-6">Compare Profiles</h1>
+
+                <!-- User Selection -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div>
+                        <label for="compareUser1" class="block text-sm font-medium text-gray-300 mb-2">Select First User</label>
+                        <select id="compareUser1" class="w-full p-3 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue-500 bg-gray-700 text-white">
+                            <option value="">-- Select User --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="compareUser2" class="block text-sm font-medium text-gray-300 mb-2">Select Second User</label>
+                        <select id="compareUser2" class="w-full p-3 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-custom-blue-500 bg-gray-700 text-white">
+                            <option value="">-- Select User --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="compareButton" class="w-full md:w-auto px-6 py-3 bg-custom-blue-500 text-white rounded-md hover:bg-custom-blue-600 transition-colors duration-200 font-medium mb-6">
+                    Compare
+                </button>
+
+                <!-- Comparison Results -->
+                <div id="comparisonResults" class="hidden">
+                    <!-- User Profile Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- User 1 Card -->
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-lg">
+                            <div class="flex items-center mb-4">
+                                <img id="compareUser1Avatar" src="https://placehold.co/80x80/2a608d/ffffff?text=U1" alt="User 1 Avatar" class="w-20 h-20 rounded-full mr-4 border-2 border-custom-blue-400">
+                                <div>
+                                    <h2 id="compareUser1DisplayName" class="text-2xl font-bold text-custom-blue-400">User 1</h2>
+                                    <p class="text-sm text-gray-300 flex items-center">
+                                        <img id="compareUser1RankIcon" src="" alt="Rank Icon" class="w-[13px] h-[13px] inline-block mr-1" onerror="this.style.display='none'">
+                                        <span id="compareUser1RankName">Rank</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-200">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Overall Points:</span>
+                                    <span id="compareUser1OverallPoints" class="font-semibold">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Points (3 Months):</span>
+                                    <span id="compareUser1Points3M" class="font-semibold">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Diary Points:</span>
+                                    <span id="compareUser1DiaryPointsCard" class="font-semibold">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Master Diaries:</span>
+                                    <span id="compareUser1MasterDiaries" class="font-semibold">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Weekly EHB:</span>
+                                    <span id="compareUser1WeeklyEhb" class="font-semibold">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- User 2 Card -->
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-lg">
+                            <div class="flex items-center mb-4">
+                                <img id="compareUser2Avatar" src="https://placehold.co/80x80/2a608d/ffffff?text=U2" alt="User 2 Avatar" class="w-20 h-20 rounded-full mr-4 border-2 border-custom-blue-400">
+                                <div>
+                                    <h2 id="compareUser2DisplayName" class="text-2xl font-bold text-custom-blue-400">User 2</h2>
+                                    <p class="text-sm text-gray-300 flex items-center">
+                                        <img id="compareUser2RankIcon" src="" alt="Rank Icon" class="w-[13px] h-[13px] inline-block mr-1" onerror="this.style.display='none'">
+                                        <span id="compareUser2RankName">Rank</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-sm text-gray-200">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Overall Points:</span>
+                                    <span id="compareUser2OverallPoints" class="font-semibold">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Points (3 Months):</span>
+                                    <span id="compareUser2Points3M" class="font-semibold">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Diary Points:</span>
+                                    <span id="compareUser2DiaryPointsCard" class="font-semibold">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Master Diaries:</span>
+                                    <span id="compareUser2MasterDiaries" class="font-semibold">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Weekly EHB:</span>
+                                    <span id="compareUser2WeeklyEhb" class="font-semibold">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-custom-blue-300 mb-2">Total PBs</h3>
+                            <div class="flex justify-between items-center">
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-400" id="compareUser1NamePBs">User 1</p>
+                                    <p class="text-2xl font-bold text-white" id="compareUser1TotalPBs">0</p>
+                                </div>
+                                <div class="text-gray-500">vs</div>
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-400" id="compareUser2NamePBs">User 2</p>
+                                    <p class="text-2xl font-bold text-white" id="compareUser2TotalPBs">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-custom-blue-300 mb-2">Faster Times</h3>
+                            <div class="flex justify-between items-center">
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-400" id="compareUser1NameFaster">User 1</p>
+                                    <p class="text-2xl font-bold text-green-400" id="compareUser1FasterCount">0</p>
+                                </div>
+                                <div class="text-gray-500">vs</div>
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-400" id="compareUser2NameFaster">User 2</p>
+                                    <p class="text-2xl font-bold text-green-400" id="compareUser2FasterCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-700 p-4 rounded-lg">
+                            <h3 class="text-lg font-semibold text-custom-blue-300 mb-2">Diary Tiers</h3>
+                            <div class="flex justify-between items-center">
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-400" id="compareUser1NameDiary">User 1</p>
+                                    <p class="text-2xl font-bold text-purple-400" id="compareUser1DiaryCount">0</p>
+                                </div>
+                                <div class="text-gray-500">vs</div>
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-400" id="compareUser2NameDiary">User 2</p>
+                                    <p class="text-2xl font-bold text-purple-400" id="compareUser2DiaryCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Comparison Table -->
+                    <h2 class="text-2xl font-bold text-custom-blue-400 mb-4">Personal Best Times Comparison</h2>
+                    <div class="overflow-x-auto table-container rounded-lg border border-gray-700 shadow-sm">
+                        <table class="min-w-full divide-y divide-gray-700 bg-gray-900 text-gray-200">
+                            <thead class="bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Boss</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Scale</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" id="compareUser1NameHeader">User 1</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider" id="compareUser2NameHeader">User 2</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparisonTableBody" class="divide-y divide-gray-700">
+                                <!-- Comparison rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="comparisonEmpty" class="text-center py-8 text-gray-400">
+                    Select two users and click "Compare" to see their personal best times side by side.
+                </div>
+            </div>
+        </section>
+
 
 
     </main>
@@ -998,6 +1175,8 @@
         let auditLogCurrentSortColumn = 'id';
         let auditLogCurrentSortDirection = 'desc';
         let auditLogCurrentPage = 1;
+        let auditLogTotalItems = 0;
+        let auditLogTotalPages = 0;
         const auditLogItemsPerPage = 200;
 
 
@@ -1131,12 +1310,12 @@
             console.log("Preloading all data...");
             NProgress.start();
             try {
-                // THE FIX IS HERE: Added discordActivityMonthlyRes and discordActivityYearlyRes to the list
+                // Note: auditLogRes removed - it will be loaded on-demand with pagination
                 const [
                     usersRes, dropsRes, pbsRes, pointsRes, diaryTimesRes,
                     rankChangesRes, discordProfilesRes, userEhbRes,
                     discordActivityRes, discordActivityMonthlyRes, discordActivityYearlyRes,
-                    bingoRes, miscRolesRes, auditLogRes
+                    bingoRes, miscRolesRes
                 ] = await Promise.all([
                     fetch(USERS_API_URL),
                     fetch(DROPS_API_URL),
@@ -1150,8 +1329,8 @@
                     fetch(DISCORDMSGSSENT_MONTHLY_API_URL),
                     fetch(DISCORDMSGSSENT_YEARLY_API_URL),
                     fetch(BINGOWINNERS_API_URL),
-                    fetch(MISCROLES_API_URL),
-                    fetch(AUDITLOG_API_URL)
+                    fetch(MISCROLES_API_URL)
+                    // Audit log NOT preloaded - fetched on-demand with pagination
                 ]);
 
                 allUsersData = await usersRes.json();
@@ -1163,6 +1342,11 @@
                 allPointsData = pointsJson.data || [];
                 allDiaryTimesData = await diaryTimesRes.json();
                 allRankChangesData = await rankChangesRes.json();
+                // Handle both old format (array) and new format (object with data property)
+                if (allRankChangesData && !Array.isArray(allRankChangesData) && allRankChangesData.data) {
+                    // New paginated format - extract the data array
+                    allRankChangesData = allRankChangesData.data;
+                }
                 allDiscordProfilesData = await discordProfilesRes.json();
                 allUserEhbData = await userEhbRes.json();
                 allDiscordActivityData = await discordActivityRes.json();
@@ -1170,7 +1354,7 @@
                 allDiscordActivityYearlyData = await discordActivityYearlyRes.json();
                 allBingoWinnersData = await bingoRes.json();
                 allMiscRolesData = await miscRolesRes.json();
-                allAuditLogData = await auditLogRes.json();
+                // allAuditLogData not loaded here - loaded on-demand
 
                 isDataLoaded = true;
                 console.log("All data preloaded successfully.");
@@ -1887,34 +2071,51 @@
 
         // --- Audit Log Table Functions ---
         async function fetchAuditLogData() {
-            applyAuditLogFiltersAndSort();
+            await fetchAuditLogFromServer();
         }
 
-        function applyAuditLogFiltersAndSort() {
-            const searchTerm = document.getElementById('auditLogSearchInput').value.toLowerCase();
-            let filteredData = allAuditLogData.filter(log => {
-                return Object.values(log).some(value =>
-                    String(value).toLowerCase().includes(searchTerm)
-                );
-            });
-            sortData(filteredData, auditLogCurrentSortColumn, auditLogCurrentSortDirection, '#auditLogTable');
-            renderAuditLogTable(filteredData);
+        async function fetchAuditLogFromServer(page = 1) {
+            NProgress.start();
+            const tableBody = document.querySelector('#auditLogTable tbody');
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-400">Loading...</td></tr>';
+
+            try {
+                const perPage = auditLogItemsPerPage;
+                const response = await fetch(`${API_BASE}/auditlog?page=${page}&per_page=${perPage}`);
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                // Store only the current page data (not all 23,000 rows!)
+                allAuditLogData = result.data;
+                auditLogCurrentPage = result.pagination.page;
+                auditLogTotalItems = result.pagination.total;
+                auditLogTotalPages = result.pagination.total_pages;
+
+                // Render without client-side filtering (server already filtered)
+                renderAuditLogTableServerSide();
+                renderAuditLogPaginationServerSide();
+
+            } catch (error) {
+                console.error('Error fetching audit log:', error);
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-red-500">Error loading audit log: ${error.message}</td></tr>`;
+            } finally {
+                NProgress.done();
+            }
         }
 
-        function renderAuditLogTable(logsToDisplay) {
+        function renderAuditLogTableServerSide() {
             const tableBody = document.querySelector('#auditLogTable tbody');
             tableBody.innerHTML = '';
 
-            if (logsToDisplay.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-400">No matching logs found.</td></tr>`;
+            if (allAuditLogData.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-400">No logs found.</td></tr>`;
                 return;
             }
 
-            const startIndex = (auditLogCurrentPage - 1) * auditLogItemsPerPage;
-            const endIndex = startIndex + auditLogItemsPerPage;
-            const logsToDisplayOnPage = logsToDisplay.slice(startIndex, endIndex);
-
-            logsToDisplayOnPage.forEach(log => {
+            allAuditLogData.forEach(log => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-800 transition-colors duration-150';
 
@@ -1930,15 +2131,133 @@
                 `;
                 tableBody.appendChild(row);
             });
+        }
 
-            document.querySelectorAll('#auditLogTable thead th.sortable').forEach(header => {
-                header.classList.remove('asc', 'desc');
-                if (header.dataset.column === auditLogCurrentSortColumn) {
-                    header.classList.add(auditLogCurrentSortDirection);
+        function renderAuditLogPaginationServerSide() {
+            const paginationContainer = document.getElementById('auditLogPagination');
+            paginationContainer.innerHTML = '';
+
+            if (auditLogTotalPages <= 1) return;
+
+            const maxVisibleButtons = 5;
+            let startPage = Math.max(1, auditLogCurrentPage - Math.floor(maxVisibleButtons / 2));
+            let endPage = Math.min(auditLogTotalPages, startPage + maxVisibleButtons - 1);
+            if (endPage - startPage + 1 < maxVisibleButtons) {
+                startPage = Math.max(1, endPage - maxVisibleButtons + 1);
+            }
+
+            // Previous Button
+            const prevButton = document.createElement('button');
+            prevButton.textContent = 'Previous';
+            prevButton.className = 'pagination-button';
+            prevButton.disabled = auditLogCurrentPage === 1;
+            prevButton.onclick = () => {
+                if (auditLogCurrentPage > 1) {
+                    fetchAuditLogFromServer(auditLogCurrentPage - 1);
                 }
-            });
+            };
+            paginationContainer.appendChild(prevButton);
 
-            renderAuditLogPagination(logsToDisplay.length);
+            // First page button if not visible
+            if (startPage > 1) {
+                const firstButton = document.createElement('button');
+                firstButton.textContent = '1';
+                firstButton.className = 'pagination-button';
+                firstButton.onclick = () => fetchAuditLogFromServer(1);
+                paginationContainer.appendChild(firstButton);
+
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.className = 'px-2 text-gray-400';
+                    paginationContainer.appendChild(ellipsis);
+                }
+            }
+
+            // Page Number Buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = 'pagination-button';
+                if (i === auditLogCurrentPage) {
+                    pageButton.classList.add('active');
+                }
+                pageButton.onclick = () => fetchAuditLogFromServer(i);
+                paginationContainer.appendChild(pageButton);
+            }
+
+            // Last page button if not visible
+            if (endPage < auditLogTotalPages) {
+                if (endPage < auditLogTotalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.className = 'px-2 text-gray-400';
+                    paginationContainer.appendChild(ellipsis);
+                }
+
+                const lastButton = document.createElement('button');
+                lastButton.textContent = auditLogTotalPages;
+                lastButton.className = 'pagination-button';
+                lastButton.onclick = () => fetchAuditLogFromServer(auditLogTotalPages);
+                paginationContainer.appendChild(lastButton);
+            }
+
+            // Next Button
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Next';
+            nextButton.className = 'pagination-button';
+            nextButton.disabled = auditLogCurrentPage === auditLogTotalPages;
+            nextButton.onclick = () => {
+                if (auditLogCurrentPage < auditLogTotalPages) {
+                    fetchAuditLogFromServer(auditLogCurrentPage + 1);
+                }
+            };
+            paginationContainer.appendChild(nextButton);
+
+            // Add page info
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'text-sm text-gray-400 ml-4';
+            pageInfo.textContent = `Page ${auditLogCurrentPage} of ${auditLogTotalPages} (${auditLogTotalItems.toLocaleString()} total entries)`;
+            paginationContainer.appendChild(pageInfo);
+        }
+
+        // Keep the old functions for backward compatibility but they won't be used
+        function applyAuditLogFiltersAndSort() {
+            // This is now handled by server-side, but keep search functionality
+            const searchTerm = document.getElementById('auditLogSearchInput').value.toLowerCase();
+            let filteredData = allAuditLogData.filter(log => {
+                return Object.values(log).some(value =>
+                    String(value).toLowerCase().includes(searchTerm)
+                );
+            });
+            renderAuditLogTableFiltered(filteredData);
+        }
+
+        function renderAuditLogTableFiltered(logsToDisplay) {
+            const tableBody = document.querySelector('#auditLogTable tbody');
+            tableBody.innerHTML = '';
+
+            if (logsToDisplay.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-400">No matching logs found.</td></tr>`;
+                return;
+            }
+
+            logsToDisplay.forEach(log => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-800 transition-colors duration-150';
+
+                const formattedDate = formatToDateTime(log.actionDate);
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">${log.id || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${formattedDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${log.displayName || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${log.name || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${log.affectedUserNames || 'N/A'}</td>
+                    <td class="px-6 py-4 text-sm text-gray-300 wrap-text max-w-md">${log.actionNote || 'N/A'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
         }
 
         function sortAuditLogTable(column) {
@@ -1952,61 +2271,8 @@
             applyAuditLogFiltersAndSort();
         }
 
-        function renderAuditLogPagination(totalItems) {
-            const paginationContainer = document.getElementById('auditLogPagination');
-            paginationContainer.innerHTML = '';
 
-            const totalPages = Math.ceil(totalItems / auditLogItemsPerPage);
-            if (totalPages <= 1) return;
-
-            const maxVisibleButtons = 5;
-            let startPage = Math.max(1, auditLogCurrentPage - Math.floor(maxVisibleButtons / 2));
-            let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
-            if (endPage - startPage + 1 < maxVisibleButtons) {
-                startPage = Math.max(1, endPage - maxVisibleButtons + 1);
-            }
-
-            // Previous Button
-            const prevButton = document.createElement('button');
-            prevButton.textContent = 'Previous';
-            prevButton.className = 'pagination-button';
-            prevButton.disabled = auditLogCurrentPage === 1;
-            prevButton.onclick = () => {
-                if (auditLogCurrentPage > 1) {
-                    auditLogCurrentPage--;
-                    applyAuditLogFiltersAndSort();
-                }
-            };
-            paginationContainer.appendChild(prevButton);
-
-            // Page Number Buttons
-            for (let i = startPage; i <= endPage; i++) {
-                const pageButton = document.createElement('button');
-                pageButton.textContent = i;
-                pageButton.className = 'pagination-button';
-                if (i === auditLogCurrentPage) {
-                    pageButton.classList.add('active');
-                }
-                pageButton.onclick = () => {
-                    auditLogCurrentPage = i;
-                    applyAuditLogFiltersAndSort();
-                };
-                paginationContainer.appendChild(pageButton);
-            }
-
-            // Next Button
-            const nextButton = document.createElement('button');
-            nextButton.textContent = 'Next';
-            nextButton.className = 'pagination-button';
-            nextButton.disabled = auditLogCurrentPage === totalPages;
-            nextButton.onclick = () => {
-                if (auditLogCurrentPage < totalPages) {
-                    auditLogCurrentPage++;
-                    applyAuditLogFiltersAndSort();
-                }
-            };
-            paginationContainer.appendChild(nextButton);
-        }
+        // Old renderAuditLogPagination removed - now using renderAuditLogPaginationServerSide
 
         // --- Hall of Fame Functions ---
         async function fetchBingoWinnersData() {
@@ -2214,6 +2480,26 @@
             renderUserRankChanges(user.displayName);
         }
 
+        // NEW: Function to fetch ALL rank changes (for user profile graphs)
+        async function fetchAllRankChanges() {
+            try {
+                // Fetch all rank changes using the /all endpoint or with a high page number
+                const response = await fetch(`${API_BASE}/rankChanges/all`);
+                const data = await response.json();
+
+                // Handle both formats (array or paginated)
+                if (Array.isArray(data)) {
+                    return data;
+                } else if (data.data) {
+                    return data.data;
+                }
+                return [];
+            } catch (error) {
+                console.error('Error fetching all rank changes:', error);
+                return [];
+            }
+        }
+
 
             function renderPointsTrendGraph(chartData) {
                 const ctx = document.getElementById('pointsTrendChart').getContext('2d');
@@ -2268,8 +2554,11 @@
 
                     // --- Logic for points trend graph ---
                     const userPointsHistory = allPointsData.filter(point => point.displayName === selectedDisplayName).sort((a, b) => new Date(a.date) - new Date(b.date));
-                    // AFTER (Labels are staggered to prevent overlap)
-                    const userRankChanges = allRankChangesData
+
+                    // IMPORTANT: Fetch ALL rank changes for this user (not just the first 100)
+                    // This ensures the graph shows all historical rank changes
+                    const allRankChangesForGraph = await fetchAllRankChanges();
+                    const userRankChanges = allRankChangesForGraph
                         .filter(r => r.displayName === selectedDisplayName)
                         .sort((a, b) => new Date(a.actionDate) - new Date(b.actionDate)); // 1. Sort by date first
 
@@ -2407,6 +2696,52 @@
             });
         }
 
+        function parseSimpleTime(timeString) {
+            // Parse MM:SS format (used in diary times) to milliseconds
+            if (!timeString || typeof timeString !== 'string') return NaN;
+            const parts = timeString.split(':');
+
+            if (parts.length === 2) {
+                // MM:SS format
+                const minutes = parseInt(parts[0], 10);
+                const seconds = parseInt(parts[1], 10);
+                if (!isNaN(minutes) && !isNaN(seconds)) {
+                    return (minutes * 60 * 1000) + (seconds * 1000);
+                }
+            }
+
+            // Fall back to parseTimeMs for MMM:SS,MS format
+            return parseTimeMs(timeString);
+        }
+
+        function getDiaryTierForTime(bossName, scale, timeMs) {
+            // Find the matching diary entry
+            const diaryEntry = allDiaryTimesData.find(d =>
+                d.name === bossName && d.scale == scale
+            );
+
+            if (!diaryEntry) {
+                return null; // No diary entry found for this boss/scale
+            }
+
+            // Convert diary times to milliseconds for comparison
+            // Use parseSimpleTime since diary times are in MM:SS format
+            const easyMs = diaryEntry.timeEasy ? parseSimpleTime(diaryEntry.timeEasy) : Infinity;
+            const mediumMs = diaryEntry.timeMedium ? parseSimpleTime(diaryEntry.timeMedium) : Infinity;
+            const hardMs = diaryEntry.timeHard ? parseSimpleTime(diaryEntry.timeHard) : Infinity;
+            const eliteMs = diaryEntry.timeElite ? parseSimpleTime(diaryEntry.timeElite) : Infinity;
+            const masterMs = diaryEntry.timeMaster ? parseSimpleTime(diaryEntry.timeMaster) : Infinity;
+
+            // Check from best to worst tier
+            if (timeMs <= masterMs) return 'diarymaster';
+            if (timeMs <= eliteMs) return 'diaryelite';
+            if (timeMs <= hardMs) return 'diaryhard';
+            if (timeMs <= mediumMs) return 'diarymedium';
+            if (timeMs <= easyMs) return 'diaryeasy';
+
+            return null; // Time doesn't qualify for any tier
+        }
+
         function renderPersonalBestsProfileTable(pbs) {
             const tableBody = document.getElementById('personalBestsProfileTableBody');
             tableBody.innerHTML = '';
@@ -2425,8 +2760,18 @@
                                         `<a href="${pb.imageUrl}" target="_blank" class="text-custom-blue-400 hover:underline">View Image</a>` :
                                         'N/A';
 
+                // Determine diary tier icon
+                let diaryIcon = '';
+                if (pb.time && pb.boss_name && pb.scale) {
+                    const timeMs = parseTimeMs(pb.time);
+                    const diaryTier = getDiaryTierForTime(pb.boss_name, pb.scale, timeMs);
+                    if (diaryTier) {
+                        diaryIcon = `<img src="/icons/${diaryTier}.png" alt="${diaryTier}" class="inline-block w-5 h-5 mr-2" title="${diaryTier.replace('diary', '').charAt(0).toUpperCase() + diaryTier.replace('diary', '').slice(1)} Tier">`;
+                    }
+                }
+
                 row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${pb.boss_name || 'N/A'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${diaryIcon}${pb.boss_name || 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${pb.scale || 'N/A'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${formattedTime}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">${imageUrlContent}</td>
@@ -2570,6 +2915,290 @@
                 '<span class="text-gray-500">-</span>';
         }
 
+        // Profile Comparison Functions
+        async function populateCompareDropdowns() {
+            const compareUser1 = document.getElementById('compareUser1');
+            const compareUser2 = document.getElementById('compareUser2');
+
+            compareUser1.innerHTML = '<option value="">-- Select User --</option>';
+            compareUser2.innerHTML = '<option value="">-- Select User --</option>';
+
+            const sortedUsers = [...allUsersData].sort((a, b) => {
+                const nameA = a.displayName || '';
+                const nameB = b.displayName || '';
+                return nameA.localeCompare(nameB);
+            });
+
+            sortedUsers.forEach(user => {
+                if (user.displayName) {
+                    const option1 = document.createElement('option');
+                    option1.value = user.displayName;
+                    option1.textContent = user.displayName;
+                    compareUser1.appendChild(option1);
+
+                    const option2 = document.createElement('option');
+                    option2.value = user.displayName;
+                    option2.textContent = user.displayName;
+                    compareUser2.appendChild(option2);
+                }
+            });
+        }
+
+        function handleCompareProfiles() {
+            const user1Name = document.getElementById('compareUser1').value;
+            const user2Name = document.getElementById('compareUser2').value;
+
+            if (!user1Name || !user2Name) {
+                alert('Please select both users to compare');
+                return;
+            }
+
+            if (user1Name === user2Name) {
+                alert('Please select two different users');
+                return;
+            }
+
+            // Get full user data for both users
+            const user1Data = allUsersData.find(u => u.displayName === user1Name);
+            const user2Data = allUsersData.find(u => u.displayName === user2Name);
+
+            if (!user1Data || !user2Data) {
+                alert('Could not find user data');
+                return;
+            }
+
+            // Get discord profile data for avatars
+            const user1Discord = allDiscordProfilesData.find(p => p.displayName === user1Name);
+            const user2Discord = allDiscordProfilesData.find(p => p.displayName === user2Name);
+
+            // Get EHB data
+            const user1Ehb = allUserEhbData.find(e => e.displayName === user1Name);
+            const user2Ehb = allUserEhbData.find(e => e.displayName === user2Name);
+
+            // Get all PBs for both users
+            const user1PBs = allPersonalBestsData.filter(pb => {
+                if (!pb.member_names) return false;
+                const members = pb.member_names.split(',').map(name => name.trim());
+                return members.includes(user1Name);
+            });
+
+            const user2PBs = allPersonalBestsData.filter(pb => {
+                if (!pb.member_names) return false;
+                const members = pb.member_names.split(',').map(name => name.trim());
+                return members.includes(user2Name);
+            });
+
+            // Calculate best times for each user independently
+            const user1BestTimes = calculateUniqueBestTimes(user1PBs);
+            const user2BestTimes = calculateUniqueBestTimes(user2PBs);
+
+            // Build comparison data
+            const comparisonData = buildComparisonData(user1BestTimes, user2BestTimes);
+
+            // Calculate stats
+            const stats = calculateComparisonStats(comparisonData, user1Name, user2Name);
+
+            // Display results
+            displayComparisonResults(user1Name, user2Name, user1Data, user2Data, user1Discord, user2Discord, user1Ehb, user2Ehb, comparisonData, stats);
+        }
+
+        function buildComparisonData(user1BestTimes, user2BestTimes) {
+            const comparisonMap = new Map();
+
+            // Add user1 times
+            user1BestTimes.forEach(pb => {
+                const key = `${pb.boss_name}-${pb.scale}`;
+                comparisonMap.set(key, {
+                    boss_name: pb.boss_name,
+                    scale: pb.scale,
+                    user1Time: pb.time,
+                    user1TimeMs: parseTimeMs(pb.time),
+                    user2Time: null,
+                    user2TimeMs: null
+                });
+            });
+
+            // Add user2 times
+            user2BestTimes.forEach(pb => {
+                const key = `${pb.boss_name}-${pb.scale}`;
+                if (comparisonMap.has(key)) {
+                    const existing = comparisonMap.get(key);
+                    existing.user2Time = pb.time;
+                    existing.user2TimeMs = parseTimeMs(pb.time);
+                } else {
+                    comparisonMap.set(key, {
+                        boss_name: pb.boss_name,
+                        scale: pb.scale,
+                        user1Time: null,
+                        user1TimeMs: null,
+                        user2Time: pb.time,
+                        user2TimeMs: parseTimeMs(pb.time)
+                    });
+                }
+            });
+
+            // Convert to array and sort
+            return Array.from(comparisonMap.values()).sort((a, b) => {
+                if (a.boss_name < b.boss_name) return -1;
+                if (a.boss_name > b.boss_name) return 1;
+                return (a.scale || 0) - (b.scale || 0);
+            });
+        }
+
+        function calculateComparisonStats(comparisonData, user1Name, user2Name) {
+            let user1FasterCount = 0;
+            let user2FasterCount = 0;
+            let user1DiaryCount = 0;
+            let user2DiaryCount = 0;
+
+            comparisonData.forEach(row => {
+                // Count faster times
+                if (row.user1TimeMs && row.user2TimeMs) {
+                    if (row.user1TimeMs < row.user2TimeMs) {
+                        user1FasterCount++;
+                    } else if (row.user2TimeMs < row.user1TimeMs) {
+                        user2FasterCount++;
+                    }
+                }
+
+                // Count diary tiers
+                if (row.user1TimeMs) {
+                    const tier = getDiaryTierForTime(row.boss_name, row.scale, row.user1TimeMs);
+                    if (tier) user1DiaryCount++;
+                }
+                if (row.user2TimeMs) {
+                    const tier = getDiaryTierForTime(row.boss_name, row.scale, row.user2TimeMs);
+                    if (tier) user2DiaryCount++;
+                }
+            });
+
+            return {
+                user1TotalPBs: comparisonData.filter(r => r.user1Time).length,
+                user2TotalPBs: comparisonData.filter(r => r.user2Time).length,
+                user1FasterCount,
+                user2FasterCount,
+                user1DiaryCount,
+                user2DiaryCount
+            };
+        }
+
+        function displayComparisonResults(user1Name, user2Name, user1Data, user2Data, user1Discord, user2Discord, user1Ehb, user2Ehb, comparisonData, stats) {
+            // Update User 1 Profile Card
+            document.getElementById('compareUser1DisplayName').textContent = user1Name;
+            document.getElementById('compareUser1Avatar').src = user1Discord ? user1Discord.discordProfileImageUrl : `https://placehold.co/80x80/2a608d/ffffff?text=${user1Name.charAt(0)}`;
+
+            const user1RankName = user1Data.rank_name || 'N/A';
+            document.getElementById('compareUser1RankName').textContent = user1RankName;
+            const user1RankIconPath = user1RankName !== 'N/A' ? `/icons/${user1RankName.toLowerCase().replace(/\s/g, '-')}.webp` : '';
+            document.getElementById('compareUser1RankIcon').src = user1RankIconPath;
+
+            document.getElementById('compareUser1OverallPoints').textContent = user1Data.points ? parseInt(user1Data.points).toLocaleString('de-DE') : '0';
+            document.getElementById('compareUser1Points3M').textContent = user1Data.points_past_3_months ? parseInt(user1Data.points_past_3_months).toLocaleString('de-DE') : '0';
+            document.getElementById('compareUser1DiaryPointsCard').textContent = user1Data.diaryPoints || '0';
+            document.getElementById('compareUser1MasterDiaries').textContent = user1Data.masterDiaryPoints || '0';
+            document.getElementById('compareUser1WeeklyEhb').textContent = user1Ehb ? (user1Ehb.total_weekly_ehb || 0).toFixed(2) : '0.00';
+
+            // Update User 2 Profile Card
+            document.getElementById('compareUser2DisplayName').textContent = user2Name;
+            document.getElementById('compareUser2Avatar').src = user2Discord ? user2Discord.discordProfileImageUrl : `https://placehold.co/80x80/2a608d/ffffff?text=${user2Name.charAt(0)}`;
+
+            const user2RankName = user2Data.rank_name || 'N/A';
+            document.getElementById('compareUser2RankName').textContent = user2RankName;
+            const user2RankIconPath = user2RankName !== 'N/A' ? `/icons/${user2RankName.toLowerCase().replace(/\s/g, '-')}.webp` : '';
+            document.getElementById('compareUser2RankIcon').src = user2RankIconPath;
+
+            document.getElementById('compareUser2OverallPoints').textContent = user2Data.points ? parseInt(user2Data.points).toLocaleString('de-DE') : '0';
+            document.getElementById('compareUser2Points3M').textContent = user2Data.points_past_3_months ? parseInt(user2Data.points_past_3_months).toLocaleString('de-DE') : '0';
+            document.getElementById('compareUser2DiaryPointsCard').textContent = user2Data.diaryPoints || '0';
+            document.getElementById('compareUser2MasterDiaries').textContent = user2Data.masterDiaryPoints || '0';
+            document.getElementById('compareUser2WeeklyEhb').textContent = user2Ehb ? (user2Ehb.total_weekly_ehb || 0).toFixed(2) : '0.00';
+
+            // Update summary stats
+            document.getElementById('compareUser1NamePBs').textContent = user1Name;
+            document.getElementById('compareUser2NamePBs').textContent = user2Name;
+            document.getElementById('compareUser1TotalPBs').textContent = stats.user1TotalPBs;
+            document.getElementById('compareUser2TotalPBs').textContent = stats.user2TotalPBs;
+
+            document.getElementById('compareUser1NameFaster').textContent = user1Name;
+            document.getElementById('compareUser2NameFaster').textContent = user2Name;
+            document.getElementById('compareUser1FasterCount').textContent = stats.user1FasterCount;
+            document.getElementById('compareUser2FasterCount').textContent = stats.user2FasterCount;
+
+            document.getElementById('compareUser1NameDiary').textContent = user1Name;
+            document.getElementById('compareUser2NameDiary').textContent = user2Name;
+            document.getElementById('compareUser1DiaryCount').textContent = stats.user1DiaryCount;
+            document.getElementById('compareUser2DiaryCount').textContent = stats.user2DiaryCount;
+
+            // Update table headers
+            document.getElementById('compareUser1NameHeader').textContent = user1Name;
+            document.getElementById('compareUser2NameHeader').textContent = user2Name;
+
+            // Build table rows
+            const tableBody = document.getElementById('comparisonTableBody');
+            tableBody.innerHTML = '';
+
+            comparisonData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-800 transition-colors duration-150';
+
+                // Boss name
+                const bossTd = document.createElement('td');
+                bossTd.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-300 font-medium';
+                bossTd.textContent = row.boss_name || 'N/A';
+
+                // Scale
+                const scaleTd = document.createElement('td');
+                scaleTd.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-300';
+                scaleTd.textContent = row.scale || 'N/A';
+
+                // User 1 time
+                const user1Td = document.createElement('td');
+                user1Td.className = 'px-6 py-4 whitespace-nowrap text-sm';
+                if (row.user1Time) {
+                    const tier = getDiaryTierForTime(row.boss_name, row.scale, row.user1TimeMs);
+                    const icon = tier ? `<img src="/icons/${tier}.png" alt="${tier}" class="inline-block w-4 h-4 mr-1">` : '';
+                    const isFaster = row.user2TimeMs && row.user1TimeMs < row.user2TimeMs;
+                    user1Td.innerHTML = `${icon}<span class="${isFaster ? 'text-green-400 font-semibold' : 'text-gray-300'}">${formatTimeFromMs(row.user1TimeMs)}</span>`;
+                } else {
+                    user1Td.innerHTML = '<span class="text-gray-500">-</span>';
+                }
+
+                // User 2 time
+                const user2Td = document.createElement('td');
+                user2Td.className = 'px-6 py-4 whitespace-nowrap text-sm';
+                if (row.user2Time) {
+                    const tier = getDiaryTierForTime(row.boss_name, row.scale, row.user2TimeMs);
+                    const icon = tier ? `<img src="/icons/${tier}.png" alt="${tier}" class="inline-block w-4 h-4 mr-1">` : '';
+                    const isFaster = row.user1TimeMs && row.user2TimeMs < row.user1TimeMs;
+                    user2Td.innerHTML = `${icon}<span class="${isFaster ? 'text-green-400 font-semibold' : 'text-gray-300'}">${formatTimeFromMs(row.user2TimeMs)}</span>`;
+                } else {
+                    user2Td.innerHTML = '<span class="text-gray-500">-</span>';
+                }
+
+                // Difference
+                const diffTd = document.createElement('td');
+                diffTd.className = 'px-6 py-4 whitespace-nowrap text-sm';
+                if (row.user1TimeMs && row.user2TimeMs) {
+                    const diff = Math.abs(row.user1TimeMs - row.user2TimeMs);
+                    const faster = row.user1TimeMs < row.user2TimeMs ? user1Name : user2Name;
+                    diffTd.innerHTML = `<span class="text-yellow-400">${formatTimeFromMs(diff)}</span><br><span class="text-xs text-gray-400">${faster} ahead</span>`;
+                } else {
+                    diffTd.innerHTML = '<span class="text-gray-500">-</span>';
+                }
+
+                tr.appendChild(bossTd);
+                tr.appendChild(scaleTd);
+                tr.appendChild(user1Td);
+                tr.appendChild(user2Td);
+                tr.appendChild(diffTd);
+                tableBody.appendChild(tr);
+            });
+
+            // Show results, hide empty message
+            document.getElementById('comparisonResults').classList.remove('hidden');
+            document.getElementById('comparisonEmpty').classList.add('hidden');
+        }
+
         // PB Hiscores Functions
         let bossImages = [];
         let uniqueBosses = new Set();
@@ -2645,21 +3274,61 @@
                 return;
             }
 
-            let boss = bossImages.find(b => b.name === bossName);
+            // Comprehensive map of boss names to local image files
+            // Matches the files you showed in the screenshot
+            const bossImageMap = {
+                // Raids
+                'Chambers of Xeric': '/icons/challengemodecm.png',
+                'Chambers of Xeric (Challenge Mode)': '/icons/challengemodecm.png',
+                'Theatre of Blood': '/icons/theatreofblood.png',
+                'Theatre of Blood (Hard Mode)': '/icons/threatreofbloodhardmode.png',
 
-            if (!boss) {
-                boss = bossImages.find(b => bossName.startsWith(b.name) || b.name.startsWith(bossName));
+                // Gauntlet
+                'Corrupted Gauntlet': '/icons/corruptedgauntlet.png',
+                'The Corrupted Gauntlet': '/icons/corruptedgauntlet.png',
+
+                // Fight Caves
+                'TzKal-Zuk': '/icons/tzkal-zuk.png',
+                'TzTok-Jad': '/icons/tztok-jad.png',
+
+                // Colosseum
+                'Fortis Colosseum': '/icons/fortiscoloseum.png',
+
+                // Diary achievements (if they appear as bosses)
+                'Combat Achievements (Easy)': '/icons/diaryeasy.png',
+                'Combat Achievements (Medium)': '/icons/diarymedium.png',
+                'Combat Achievements (Hard)': '/icons/diaryhard.png',
+                'Combat Achievements (Elite)': '/icons/diaryelite.png',
+                'Combat Achievements (Master)': '/icons/diarymaster.png',
+            };
+
+            // Try direct match first
+            let imageUrl = bossImageMap[bossName];
+
+            // If no direct match, try to find from bossImages API data (fallback)
+            if (!imageUrl && bossImages && bossImages.length > 0) {
+                let boss = bossImages.find(b => b.name === bossName);
+                if (!boss) {
+                    // Try partial match
+                    boss = bossImages.find(b =>
+                        bossName.toLowerCase().includes(b.name.toLowerCase()) ||
+                        b.name.toLowerCase().includes(bossName.toLowerCase())
+                    );
+                }
+                if (boss && boss.imageUrl) {
+                    imageUrl = boss.imageUrl;
+                }
             }
 
-            if (!boss || !boss.imageUrl) {
+            if (!imageUrl) {
                 container.innerHTML = `<p class="text-gray-500">No image available for ${bossName}</p>`;
                 return;
             }
 
             container.innerHTML = `
-                <img src="${boss.imageUrl}" alt="${bossName}"
+                <img src="${imageUrl}" alt="${bossName}"
                      class="max-w-full max-h-full object-contain"
-                     onerror="this.parentElement.innerHTML='<p class=\'text-gray-500\'>Failed to load image</p>'">
+                     onerror="this.parentElement.innerHTML='<p class=\'text-gray-500\'>Image not found: ${imageUrl}</p>'">
             `;
         }
 
@@ -2667,7 +3336,9 @@
             return personalBests.filter(pb => {
                 const matchesBoss = !bossFilter || pb.boss_name === bossFilter;
                 const matchesScale = !scaleFilter || String(pb.scale) === scaleFilter;
-                return matchesBoss && matchesScale;
+                // Exclude status = 6 (member left clan) from hiscores
+                const validForHiscores = pb.status !== 6;
+                return matchesBoss && matchesScale && validForHiscores;
             });
         }
 
@@ -3037,11 +3708,11 @@
             });
 
             const rewards = [
-                { task: 'Easy Task', difficultyPoints: 1, tierPercentage: 0.10, clanPoints: 50 },
-                { task: 'Medium Task', difficultyPoints: 2, tierPercentage: 0.25, clanPoints: 150 },
-                { task: 'Hard Task', difficultyPoints: 3, tierPercentage: 0.50, clanPoints: 250 },
-                { task: 'Elite Task', difficultyPoints: 4, tierPercentage: 0.75, clanPoints: 500 },
-                { task: 'Master Task', difficultyPoints: 5, tierPercentage: 1.00, clanPoints: 1000 }
+                { task: 'Easy Task', difficultyPoints: 1, tierPercentage: 0.07, clanPoints: 125 },
+                { task: 'Medium Task', difficultyPoints: 2, tierPercentage: 0.20, clanPoints: 250 },
+                { task: 'Hard Task', difficultyPoints: 3, tierPercentage: 0.40, clanPoints: 500 },
+                { task: 'Elite Task', difficultyPoints: 4, tierPercentage: 0.70, clanPoints: 1000 },
+                { task: 'Master Task', difficultyPoints: 5, tierPercentage: 1.00, clanPoints: 2000 }
             ];
 
             let cumulativePointsAchieved = 0;
@@ -3346,15 +4017,21 @@
 
         function renderRecentRankChanges() {
             const container = document.getElementById('recentRankChanges');
-            if (!allRankChangesData || allRankChangesData.length === 0) {
+
+            // Handle new pagination format from API
+            let rankChangesData = allRankChangesData;
+            if (allRankChangesData && allRankChangesData.data) {
+                // New format with pagination
+                rankChangesData = allRankChangesData.data;
+            }
+
+            if (!rankChangesData || rankChangesData.length === 0) {
                 container.innerHTML = '<li class="text-gray-400 text-center">No rank changes found.</li>';
                 return;
             }
 
-            // Sort by date and take the 10 most recent changes
-            const recentChanges = [...allRankChangesData]
-                .sort((a, b) => new Date(b.actionDate) - new Date(a.actionDate))
-                .slice(0, 20);
+            // Take first 20 for the home page widget (already sorted by server)
+            const recentChanges = rankChangesData.slice(0, 20);
 
             container.innerHTML = recentChanges.map(change => {
                 // --- NEW LOGIC START ---
@@ -3489,6 +4166,8 @@
                     await Promise.all([fetchApprovedDropsData(), fetchApprovedPbsData()]);
                 } else if (pageId === 'userprofile') {
                     await fetchUsersForDropdown();
+                } else if (pageId === 'compare') {
+                    await populateCompareDropdowns();
                 } else if (pageId === 'pbhiscores') {
                     await fetchPbHiscoresData();
                 } else if (pageId === 'diary') {
@@ -3630,6 +4309,11 @@
                         displayUserPersonalBests(selectedDisplayName);
                     }
                 });
+            }
+
+            const compareButton = document.getElementById('compareButton');
+            if (compareButton) {
+                compareButton.addEventListener('click', handleCompareProfiles);
             }
 
             const initialPageId = window.location.hash ? window.location.hash.substring(1).split('?')[0] : 'home';

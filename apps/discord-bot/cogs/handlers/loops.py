@@ -247,7 +247,9 @@ def checkIfRSNinDB(rsn : str):
     else:
         return None
 
-
+def getEventWinners(groupId):
+    x = requests.get(f'https://api.wiseoldman.net/v2/groups/{groupId}/name-changes?limit=50' ) #?limit=5 removed
+    return x.json()
 
 
 class diaryPointClaimerView(View):  # for council / drop acceptors etc in #posted-drops
@@ -492,6 +494,49 @@ async def sanityOverViewUpdater():  # update the sheets #users and #drops
 async def before():
     await bot.wait_until_ready()
 sanityOverViewUpdater.start()"""
+
+def eventWinnerRoleTableStatusUpdater():
+    mycursor.execute("""
+    UPDATE sanity2.eventWinnerMultiplier 
+    SET isActive = 0 
+    WHERE NOW() > DATE_ADD(date, INTERVAL numberOfDays DAY)"""
+    )
+    db.commit()
+
+@tasks.loop(time=[time(hour=3,minute=14)])
+async def eventWinnerRole():
+    """
+    steps
+    1. update the isactive status in database for users that shouldnt have the role
+    2. check ussers that have the role, but shouldnt -> remove role
+    """
+    eventWinnerRoleTableStatusUpdater()
+    eventWinnerRoleId = getRoleId("points multiplier")
+
+    #step 1 get users that should have the role
+    mycursor.execute(
+        f"SELECT winnerUserId, mutliplier from sanity2.eventWinnerMultiplier ewm where isActive = 1"
+    )
+    data = mycursor.fetchall()
+    memberIds = [member[0] for member in data] #users that should have the role
+
+    #members in sanity with the role
+    sanity = bot.get_guild(301755382160818177)
+    eventWinnerRole = sanity.get_role(eventWinnerRoleId)
+    eventWinnerRole_member_ids = [member.id for member in eventWinnerRole.members]
+
+    # remove role if not in DB
+    for memberId in eventWinnerRole_member_ids:
+        if memberId not in memberIds:
+            member_disc = sanity.get_member(memberId)
+            await member_disc.remove_roles(eventWinnerRole)
+            insert_audit_Logs(member_disc.id, 8, datetime.datetime.now(), "EventWinnerRole removed", member_disc.id)
+
+
+@eventWinnerRole.before_loop  # REMOVES
+async def before():
+    await bot.wait_until_ready()
+eventWinnerRole.start()
 
 
 @tasks.loop(time=[time(hour=20,minute=14)])
