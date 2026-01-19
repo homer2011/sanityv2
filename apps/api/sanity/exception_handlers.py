@@ -27,7 +27,7 @@ async def unhandled_exception_handler(request: Request, ex: Exception) -> JSONRe
         content={
             "timestamp": utc_now_z(),
             "code": 500,
-            "message": "something unexpected went wrong",
+            "message": "Something unexpected went wrong",
             "path": request.url.path,
         },
     )
