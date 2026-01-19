@@ -6,7 +6,7 @@ from sanity.exceptions import SanityException
 
 
 def utc_now_z():
-    return utc_now.isoformat().replace("+00:00", "Z")
+    return utc_now().isoformat().replace("+00:00", "Z")
 
 
 async def sanity_exception_handler(request: Request, ex: SanityException) -> JSONResponse:
