@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from sanity.common.utils import utc_now
-from sanity.exceptions import SanityException
+from sanity.errors.exceptions import SanityException
 
 
 def utc_now_z():

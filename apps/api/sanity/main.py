@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from sanity.exception_handlers import add_exception_handlers
+from sanity.errors.exception_handlers import add_exception_handlers
 from sanity.router import api_router
 
 app = FastAPI(
