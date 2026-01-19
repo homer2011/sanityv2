@@ -17,6 +17,24 @@ from ..handlers.diaryHandler import checkUserDiary
 from ..handlers.EmbedHandler import embedVariable
 from math import ceil
 
+def getRoleId(name : str):
+    mycursor.execute(
+        f"select * from sanity2.roles where name = '{name}'"
+    )
+    data = mycursor.fetchall()
+    if len(data) > 0:
+        return data[0][1]
+    else:
+        return None
+
+async def multiplier_eventwinner(ctx : discord.AutocompleteContext):
+    """
+        Returns a list of available multipliers"""
+
+    multipliers = [1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2]
+
+    return multipliers
+
 def updateRefs(userId:int, refs:str):
     mycursor.execute(
         f"update sanity2.users set referredBy = '{refs}' where userId = {userId}"
@@ -690,6 +708,29 @@ class Admin(commands.Cog):
         refsDisplayNames = getDisplayNameFromListOfuserIDs(clannies_list)
 
         await ctx.respond(f"Refs for {member.display_name} have been updated to {refsDisplayNames}")"""
+
+    @discord.slash_command(guild_ids=testingservers, name="eventwinnerrole",
+                           description="Admin - Give someone bonus points for a lil")
+    @has_any_role(*admin_roles_ids)
+    async def eventwinnerrole(self, ctx: discord.ApplicationContext,
+                             user: discord.Option(discord.Member, description="TAG THE GUY"),
+                             multiplier: discord.Option(int, "Which how much multiplication on points", autocomplete=multiplier_eventwinner),
+                             days: discord.Option(int, "How long?", min_value=1, max_value=12)):
+
+        #add user to eventWinnerMultiplier table
+        mycursor.execute(
+            f"insert into sanity2.eventWinnerMultiplier (winnerUserId, mutliplier, numberOfDays, date, isActive)"
+            f"Values (%s,%s,%s,%s,%s)",
+            (user.id,multiplier,days, datetime.datetime.now(),1)
+        )
+        db.commit()
+
+        eventWinnerRoleId = getRoleId("points multiplier")
+        eventWinnerRole = ctx.guild.get_role(eventWinnerRoleId)
+        await user.add_roles(eventWinnerRole)
+        insert_audit_Logs(ctx.author.id, 8, datetime.datetime.now(), "EventWinnerRole added", user.id)
+
+        await ctx.respond(f"✅Added eventwinnerrole to {user.display_name} ith x{multiplier} multiplier. for {days} days")
 
     @discord.slash_command(guild_ids=testingservers, name="updatejoindate", description="Admin - Edit members join date")
     @has_any_role(*admin_roles_ids)

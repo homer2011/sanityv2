@@ -334,6 +334,25 @@ class submissionAcceptor(View):  # for council / drop acceptors etc in #posted-d
 
 
 
+def checkIfPointsMultiplier(name_string):
+    mycursor.execute(
+        f"SELECT winnerUserId, mutliplier from sanity2.eventWinnerMultiplier ewm where isActive = 1 order by mutliplier asc"
+    )
+    data = mycursor.fetchall()
+    memberIds = [member[0] for member in data]  # users that should have the role
+    multiplyPoints = 1
+    members_with_multiplier = []
+    for memberId in memberIds:
+        if str(memberId) in name_string:
+            members_with_multiplier.append(memberId)
+            mycursor.execute(
+                f"SELECT winnerUserId, mutliplier from sanity2.eventWinnerMultiplier ewm where isActive = 1 and winnerUserId = {memberId}"
+            )
+            multiplyPoints = mycursor.fetchall()[0][1]
+
+    return multiplyPoints
+
+
 class submissionButtons(View):  # button for user
     def __init__(self, author):
         super().__init__(timeout=None)
@@ -364,9 +383,6 @@ class submissionButtons(View):  # button for user
     async def submitDrop(self, button: Button, interaction: discord.Interaction):
         #remove view
         await interaction.message.edit(view=None)
-
-
-
 
         channel = interaction.message.channel
         msg_to_edit = await channel.fetch_message(interaction.message.id)
@@ -408,8 +424,16 @@ class submissionButtons(View):  # button for user
         # print(self.clannies_list)
         sql_format = f"({','.join(str(clannie.replace('*','')) for clannie in clannies_list)})"
         #print(F"SQL FORMAT {sql_format}")
-
         url = interaction.message.embeds[0].image.url
+
+        ############################################################
+        ################# points multiplier based on eventsWinnerRole
+        ############################################################
+        multiplyPoints = checkIfPointsMultiplier(name_string)
+        drop_value = int(round(drop_value * multiplyPoints,0))
+        #print(drop_value)
+        #embed_dict["fields"][1]["value"] = str(drop_value)  # Add this line to update the embed dict after new value
+        #print(f"Updated drop_value to {drop_value} in embed_dict: {embed_dict['fields'][1]['value']}")  # Debug line
 
         ########################################################################################
         ############ calculate points to give
@@ -455,14 +479,20 @@ class submissionButtons(View):  # button for user
                 cap = 50
                 points = min(base_split_amount*trial_multiplier, cap)
 
-                embed_message += f"<@{clannie_id}>(trial)+`{points}` "
+                if multiplyPoints > 1:
+                    embed_message += f"<@{clannie_id}>(trial)+`{points}` (x{multiplyPoints})"
+                else:
+                    embed_message += f"<@{clannie_id}>(trial)+`{points}` "
                 sql_message.append(f"{clannie_id}*")
 
             else:
                 cap = 250
                 points = min(trial_multiplied_amount, cap)
 
-                embed_message += f"<@{clannie_id}>+`{points}` "
+                if multiplyPoints > 1:
+                    embed_message += f"<@{clannie_id}>+`{points}` (x{multiplyPoints})"
+                else:
+                    embed_message += f"<@{clannie_id}>+`{points}`"
                 sql_message.append(f"{clannie_id}")
 
         string_sql_participants = ','.join(sql_message)
@@ -476,11 +506,16 @@ class submissionButtons(View):  # button for user
                     new_image = discord.File(image, "image2.png")
 
                     embed = discord.Embed.from_dict(embed_dict)
+                    if multiplyPoints > 1:
+                        embed.color = discord.Color.og_blurple()
+                        embed.set_field_at(1, name=embed_dict["fields"][1]["name"], value=f"{drop_value}",
+                                           inline=embed_dict["fields"][1].get("inline", False))
                     embed.set_image(url="attachment://image2.png")
                     if bingoVal == 0:
                         embed.color = discord.Color.yellow()
                     else:
                         embed.color = discord.Color.nitro_pink()
+
 
                 with BytesIO(img) as newIMG:  # converts to file-like object
                     new_imagest = discord.File(newIMG, "image24.png")
