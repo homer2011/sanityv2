@@ -7,6 +7,7 @@ from sanity.errors.schemas import ResourceAlreadyExistsResponse, ResourceNotFoun
 from ..boss.schemas import BossCreate, BossPatch, BossRead
 from ..item.schemas import ItemCreate, ItemPatch, ItemRead
 from .schemas import BossReadWithItems, ItemReadWithBoss
+from .service import catalogue_service
 
 router = APIRouter(prefix="/catalogue", tags=["Bingo Catalogue"])
 
@@ -18,7 +19,14 @@ router = APIRouter(prefix="/catalogue", tags=["Bingo Catalogue"])
 async def list_bosses(
     db_session: DatabaseReadSession,
 ):
-    pass
+    bosses = await catalogue_service.list_bosses_with_items(
+        session=db_session,
+    )
+
+    return ListResponse(
+        total=len(bosses),
+        items=bosses,
+    )
 
 
 @router.post(
@@ -31,7 +39,10 @@ async def create_boss(
     db_session: DatabaseWriteSession,
     boss_create: BossCreate,
 ):
-    pass
+    return await catalogue_service.create_boss(
+        session=db_session,
+        boss_create=boss_create,
+    )
 
 
 @router.get(
@@ -43,7 +54,10 @@ async def get_boss_by_id(
     db_session: DatabaseReadSession,
     boss_id: int,
 ):
-    pass
+    return await catalogue_service.get_boss_with_items(
+        session=db_session,
+        boss_id=boss_id,
+    )
 
 
 @router.patch(
@@ -56,7 +70,11 @@ async def patch_boss_by_id(
     boss_id: int,
     boss_patch: BossPatch,
 ):
-    pass
+    return await catalogue_service.patch_boss(
+        session=db_session,
+        boss_id=boss_id,
+        boss_patch=boss_patch,
+    )
 
 
 @router.delete(
@@ -69,7 +87,10 @@ async def delete_boss_by_id(
     db_session: DatabaseWriteSession,
     boss_id: int,
 ):
-    pass
+    await catalogue_service.delete_boss(
+        session=db_session,
+        boss_id=boss_id,
+    )
 
 
 @router.post(
@@ -83,7 +104,11 @@ async def create_item_by_boss_id(
     boss_id: int,
     item_create: ItemCreate,
 ):
-    pass
+    return await catalogue_service.create_item(
+        session=db_session,
+        boss_id=boss_id,
+        item_create=item_create,
+    )
 
 
 @router.get(
@@ -95,7 +120,15 @@ async def list_items_by_boss_id(
     db_session: DatabaseReadSession,
     boss_id: int,
 ):
-    pass
+    items = await catalogue_service.list_items_for_boss(
+        session=db_session,
+        boss_id=boss_id,
+    )
+
+    return ListResponse(
+        total=len(items),
+        items=items,
+    )
 
 
 @router.get(
@@ -107,7 +140,10 @@ async def get_item_by_id(
     db_session: DatabaseReadSession,
     item_id: int,
 ):
-    pass
+    return await catalogue_service.get_item_with_boss(
+        session=db_session,
+        item_id=item_id,
+    )
 
 
 @router.patch(
@@ -120,7 +156,11 @@ async def patch_item_by_id(
     item_id: int,
     item_patch: ItemPatch,
 ):
-    pass
+    return await catalogue_service.patch_item(
+        session=db_session,
+        item_id=item_id,
+        item_patch=item_patch,
+    )
 
 
 @router.delete(
@@ -133,4 +173,7 @@ async def delete_item_by_id(
     db_session: DatabaseWriteSession,
     item_id: int,
 ):
-    pass
+    await catalogue_service.delete_item(
+        session=db_session,
+        item_id=item_id,
+    )
