@@ -5,7 +5,7 @@ from sanity.db.deps import DatabaseReadSession
 from sanity.errors.exceptions import ServiceUnavailable
 from sanity.errors.schemas import ServiceUnavailableResponse
 
-router = APIRouter(prefix="/health")
+router = APIRouter(prefix="/health", tags=["Health Check"])
 
 
 @router.get("", responses={503: ServiceUnavailableResponse})
