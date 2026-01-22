@@ -11,26 +11,30 @@ def utc_now_z():
 
 
 async def sanity_exception_handler(request: Request, ex: SanityException) -> JSONResponse:
+    payload = ErrorResponse(
+        timestamp=utc_now_z(),
+        code=ex.status_code,
+        message=ex.message,
+        path=request.url.path,
+    ).model_dump()
+
     return JSONResponse(
         status_code=ex.status_code,
-        content=ErrorResponse(
-            timestamp=utc_now_z(),
-            code=ex.status_code,
-            message=ex.message,
-            path=request.url.path,
-        ),
+        content=payload,
     )
 
 
 async def unhandled_exception_handler(request: Request, ex: Exception) -> JSONResponse:
+    payload = ErrorResponse(
+        timestamp=utc_now_z(),
+        code=500,
+        message="Something unexpected went wrong",
+        path=request.url.path,
+    ).model_dump()
+
     return JSONResponse(
         status_code=500,
-        content=ErrorResponse(
-            timestamp=utc_now_z(),
-            code=500,
-            message="Something unexpected went wrong",
-            path=request.url.path,
-        ),
+        content=payload,
     )
 
 
