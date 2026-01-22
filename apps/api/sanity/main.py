@@ -4,7 +4,7 @@ from sanity.errors.exception_handlers import add_exception_handlers
 from sanity.router import api_router
 
 app = FastAPI(
-    title="Sanity API",
+    title="Sanity Bingo API",
     version="0.1.0",
 )
 
