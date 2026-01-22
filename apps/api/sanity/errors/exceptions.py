@@ -1,35 +1,37 @@
 class SanityException(Exception):
-    def __init__(self, status_code: int, message: str) -> None:
-        super().__init__(message)
-        self.status_code = status_code
-        self.message = message
+    status_code: int
+    default_message: str
+
+    def __init__(self, custom_message: str) -> None:
+        self.message = custom_message or self.default_message
+        super().__init__(self.message)
 
 
 class BadRequest(SanityException):
-    def __init__(self, status_code: int = 400, message: str = "Bad request") -> None:
-        super().__init__(status_code, message)
+    status_code = 400
+    default_message = "Bad request"
 
 
 class Unauthorised(SanityException):
-    def __init__(self, status_code: int = 401, message: str = "Unauthorised") -> None:
-        super().__init__(status_code, message)
+    status_code = 401
+    default_message = "Unauthorised"
 
 
 class Forbidden(SanityException):
-    def __init__(self, status_code: int = 403, message: str = "Forbidden") -> None:
-        super().__init__(status_code, message)
+    status_code = 403
+    default_message = "Forbidden"
 
 
 class ResourceNotFound(SanityException):
-    def __init__(self, status_code: int = 404, message: str = "Resource not found") -> None:
-        super().__init__(status_code, message)
+    status_code = 404
+    default_message = "Resource not found"
 
 
 class ResourceAlreadyExists(SanityException):
-    def __init__(self, status_code: int = 409, message: str = "Resource already exists") -> None:
-        super().__init__(status_code, message)
+    status_code = 409
+    default_message = "Resource already exists"
 
 
-class InternalServerError(SanityException):
-    def __init__(self, status_code: int = 500, message: str = "Internal Server Error") -> None:
-        super().__init__(status_code, message)
+class ServiceUnavailable(SanityException):
+    status_code = 503
+    default_message = "Service unavailable"
