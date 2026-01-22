@@ -7,7 +7,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from sanity.config import settings
-from sanity.db.base import Base
+from sanity.db.models import Base
 
 
 def import_models() -> None:
