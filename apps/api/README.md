@@ -201,12 +201,12 @@ This order minimizes rework and keeps invariants clear.
 
 ### Phase 0 — Foundation (app + DB)
 
-- [ ] Create project structure under `apps/bingo-api/`
-- [ ] Add deps in `pyproject.toml` (FastAPI, SQLAlchemy async, Alembic, Pydantic, etc.)
-- [ ] Create app entrypoint `sanity/main.py` + router composition
-- [ ] Implement config + logging
-- [ ] Implement DB engine + async session dependency
-- [ ] Configure Alembic + initial migration pipeline
+- [x] Create project structure under `apps/bingo-api/`
+- [x] Add deps in `pyproject.toml` (FastAPI, SQLAlchemy async, Alembic, Pydantic, etc.)
+- [x] Create app entrypoint `sanity/main.py` + router composition
+- [x] Implement config + logging
+- [x] Implement DB engine + async session dependency
+- [x] Configure Alembic + initial migration pipeline
 
 ### Phase 1 — Catalogue (global data first)
 
@@ -357,7 +357,7 @@ Each feature contains:
 
 ## Milestones
 
-- [ ] M0: App boots, migrations run, health endpoint OK
+- [x] M0: App boots, migrations run, health endpoint OK
 - [ ] M1: Catalogue CRUD complete
 - [ ] M2: Events CRUD complete
 - [ ] M3: Board + Tiles CRUD + reorder complete
