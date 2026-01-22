@@ -212,8 +212,8 @@ This order minimizes rework and keeps invariants clear.
 
 Catalogue is a stable dependency for tiles.
 
-- [ ] Implement `Boss` model + schemas + CRUD endpoints
-- [ ] Implement `Item` model + schemas + CRUD endpoints
+- [x] Implement `Boss` model + schemas + CRUD endpoints
+- [x] Implement `Item` model + schemas + CRUD endpoints
 - [ ] Add seed endpoint or seed script (optional) for development
 
 Acceptance checks:
@@ -358,7 +358,7 @@ Each feature contains:
 ## Milestones
 
 - [x] M0: App boots, migrations run, health endpoint OK
-- [ ] M1: Catalogue CRUD complete
+- [x] M1: Catalogue CRUD complete
 - [ ] M2: Events CRUD complete
 - [ ] M3: Board + Tiles CRUD + reorder complete
 - [ ] M4: Teams CRUD complete
