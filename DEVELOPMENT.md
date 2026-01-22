@@ -102,6 +102,14 @@ TODO
 uv sync                     # install dependencies
 
 uv run task dev             # start the development server
+
+uv run task format          # run ruff to check for any formatting errors
+
+uv run task lint            # run ruff to check for any linting errors
+
+uv run task lint_fix        # run ruff to fix any fixable linting errors
+
+uv run task db_migrate      # upgrade database to the latest available version
 ```
 
 ### Frontend development
