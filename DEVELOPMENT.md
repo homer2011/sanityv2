@@ -36,7 +36,10 @@ TODO
 
 ## Prerequisites
 
-You will need to install [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage Python versions, virtual environments and dependencies.
+You will need to install:
+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage Python versions, virtual environments and dependencies.
+- [Docker](https://docs.docker.com/get-started/get-docker/) to manage development containers.
 
 <p align="right">
   <sub><a href="#top">back to the top</a></sub>
@@ -72,13 +75,19 @@ TODO
 cd apps/api
 ```
 
-**2. Install Python dependencies**
+**2. Start the development containers**
+
+```sh
+docker compose up -d
+```
+
+**3. Install Python dependencies**
 
 ```sh
 uv sync
 ```
 
-**3. Start the server**
+**4. Start the server**
 
 ```sh
 uv run task dev
