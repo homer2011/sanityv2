@@ -36,7 +36,10 @@ TODO
 
 ## Prerequisites
 
-You will need to install [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage Python versions, virtual environments and dependencies.
+You will need to install:
+
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) to manage Python versions, virtual environments and dependencies.
+- [Docker](https://docs.docker.com/get-started/get-docker/) to manage development containers.
 
 <p align="right">
   <sub><a href="#top">back to the top</a></sub>
@@ -52,6 +55,13 @@ cd sanityv2
 ```
 
 ### Environment variables
+
+Each application’s root directory includes an `.env.template` file per environment. Copy the template file into a new `.env` file (as shown below), then fill in any missing values from the appropriate source if required.
+
+```sh
+# Backend
+cp ./apps/api/.env.template ./apps/api/.env
+```
 
 TODO
 
@@ -72,13 +82,19 @@ TODO
 cd apps/api
 ```
 
-**2. Install Python dependencies**
+**2. Start the development containers**
+
+```sh
+docker compose up -d
+```
+
+**3. Install Python dependencies**
 
 ```sh
 uv sync
 ```
 
-**3. Start the server**
+**4. Start the server**
 
 ```sh
 uv run task dev
@@ -102,6 +118,14 @@ TODO
 uv sync                     # install dependencies
 
 uv run task dev             # start the development server
+
+uv run task format          # run ruff to check for any formatting errors
+
+uv run task lint            # run ruff to check for any linting errors
+
+uv run task lint_fix        # run ruff to fix any fixable linting errors
+
+uv run task db_migrate      # upgrade database to the latest available version
 ```
 
 ### Frontend development
