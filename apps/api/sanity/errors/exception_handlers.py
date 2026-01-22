@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 from sanity.common.utils import utc_now
 from sanity.errors.exceptions import SanityException
+from sanity.errors.schemas import ErrorResponse
 
 
 def utc_now_z():
@@ -12,24 +13,24 @@ def utc_now_z():
 async def sanity_exception_handler(request: Request, ex: SanityException) -> JSONResponse:
     return JSONResponse(
         status_code=ex.status_code,
-        content={
-            "timestamp": utc_now_z(),
-            "code": ex.status_code,
-            "message": ex.message,
-            "path": request.url.path,
-        },
+        content=ErrorResponse(
+            timestamp=utc_now_z(),
+            code=ex.status_code,
+            message=ex.message,
+            path=request.url.path,
+        ),
     )
 
 
 async def unhandled_exception_handler(request: Request, ex: Exception) -> JSONResponse:
     return JSONResponse(
         status_code=500,
-        content={
-            "timestamp": utc_now_z(),
-            "code": 500,
-            "message": "Something unexpected went wrong",
-            "path": request.url.path,
-        },
+        content=ErrorResponse(
+            timestamp=utc_now_z(),
+            code=500,
+            message="Something unexpected went wrong",
+            path=request.url.path,
+        ),
     )
 
 
