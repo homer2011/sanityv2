@@ -56,6 +56,13 @@ cd sanityv2
 
 ### Environment variables
 
+Each application’s root directory includes an `.env.template` file per environment. Copy the template file into a new `.env` file (as shown below), then fill in any missing values from the appropriate source if required.
+
+```sh
+# Backend
+cp ./apps/api/.env.template ./apps/api/.env
+```
+
 TODO
 
 <p align="right">
