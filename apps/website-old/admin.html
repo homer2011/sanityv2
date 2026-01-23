@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanity Admin Panel</title>
+    <link rel="icon" type="image/x-icon" href="/favico.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #122a3d;
+            color: #e2e8f0;
+        }
+
+        .admin-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            background: #1a364d;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: #00a3d1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0087ad;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c;
+        }
+
+        .btn-secondary {
+            background: #224b6d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2a608d;
+        }
+
+        input, select, textarea {
+            background: #122a3d;
+            border: 1px solid #224b6d;
+            color: #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            width: 100%;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00a3d1;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #0f1f2d;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #224b6d;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #224b6d;
+        }
+
+        tr:hover {
+            background: #0f1f2d;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a364d;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .user-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #224b6d;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: #065f46;
+            border: 1px solid #059669;
+        }
+
+        .alert-error {
+            background: #7f1d1d;
+            border: 1px solid #dc2626;
+        }
+
+        .pagination-button {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            background: #224b6d;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pagination-button:hover:not(:disabled) {
+            background: #2a608d;
+        }
+
+        .pagination-button.active {
+            background: #00a3d1;
+        }
+
+        .pagination-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="card">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">Sanity Admin Panel</h1>
+                    <p class="text-gray-400">Council Management Dashboard</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="user-badge" id="userBadge">
+                        <img class="user-avatar" id="userAvatar" src="" alt="Avatar">
+                        <span id="userName">Loading...</span>
+                    </div>
+                    <button onclick="logout()" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Drops Management -->
+        <div class="card">
+            <!-- Header with stats and filters -->
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2">Drop Values Management</h2>
+                    <div id="dropsStats" class="text-sm text-gray-400">
+                        Loading statistics...
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="exportDropsCSV()" class="btn btn-secondary">Export CSV</button>
+                    <button onclick="showBulkEditModal()" class="btn btn-primary">Bulk Edit</button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                <input
+                    type="text"
+                    id="dropSearchInput"
+                    placeholder="Search by item name..."
+                    onkeyup="searchDrops()">
+
+                <select id="dropValueFilter" onchange="filterDrops()">
+                    <option value="">All Items</option>
+                    <option value="with_value" selected>Items with Values (Priority)</option>
+                    <option value="without_value">Items without Values</option>
+                </select>
+
+                <select id="dropSortBy" onchange="filterDrops()">
+                    <option value="value">Sort by Value</option>
+                    <option value="name">Sort by Name</option>
+                    <option value="id">Sort by ID</option>
+                </select>
+
+                <select id="dropSortOrder" onchange="filterDrops()">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+
+            <!-- Items per page and bulk actions -->
+            <div class="mb-4 flex items-center gap-3 flex-wrap">
+                <label class="text-sm">Items per page:</label>
+                <select id="dropsPerPage" onchange="filterDrops()" style="width: auto;">
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100" selected>100</option>
+                    <option value="200">200</option>
+                </select>
+
+                <div id="dropsBulkSelectContainer" class="ml-auto flex items-center gap-2" style="display: none;">
+                    <span class="text-sm" id="selectedDropsCount">0 items selected</span>
+                    <button onclick="clearBulkSelection()" class="btn btn-secondary btn-sm">Clear</button>
+                    <button onclick="bulkSetValue()" class="btn btn-primary btn-sm">Set Value</button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table id="dropsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <input type="checkbox" id="selectAllDrops" onchange="toggleSelectAll()">
+                            </th>
+                            <th style="width: 80px;">ID</th>
+                            <th>Item Name</th>
+                            <th style="width: 150px;">Value</th>
+                            <th style="width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dropsTableBody">
+                        <tr>
+                            <td colspan="5" class="text-center py-8 text-gray-400">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="dropsPagination" class="mt-4 flex justify-between items-center">
+                <div id="dropsPageInfo" class="text-sm text-gray-400"></div>
+                <div id="dropsPaginationButtons" class="flex gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Drop Modal -->
+    <div id="editDropModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-4">Edit Drop Value</h2>
+            <form id="editDropForm" onsubmit="saveDrop(event)">
+                <input type="hidden" id="editDropId">
+
+                <div class="mb-4">
+                    <label class="block mb-2 font-medium">Item Name</label>
+                    <input type="text" id="editDropName" disabled style="background: #0f1f2d;">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block mb-2 font-medium">Value (Points)</label>
+                    <input type="number" id="editDropValue" placeholder="Enter value or leave empty for NULL">
+                    <p class="text-sm text-gray-400 mt-1">Leave empty to set as NULL (no value)</p>
+                </div>
+
+                <div class="flex gap-2 justify-end">
+                    <button type="button" onclick="closeEditDropModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Edit Modal -->
+    <div id="bulkEditModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold mb-4">Bulk Edit Drops</h2>
+            <p class="text-gray-400 mb-4">Paste item names and values (one per line)</p>
+            <p class="text-sm text-gray-400 mb-2">Format: ItemName = Value</p>
+            <p class="text-sm text-gray-400 mb-4">Example: "Twisted bow = 500"</p>
+
+            <form id="bulkEditForm" onsubmit="saveBulkEdit(event)">
+                <div class="mb-4">
+                    <textarea
+                        id="bulkEditText"
+                        rows="15"
+                        placeholder="Twisted bow = 500
+Scythe of vitur = 450
+Dragon warhammer = 200"
+                        style="font-family: monospace; font-size: 0.875rem;"></textarea>
+                </div>
+
+                <div class="flex gap-2 justify-end">
+                    <button type="button" onclick="closeBulkEditModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Apply Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentDropsPage = 1;
+        let allDropsData = [];
+        let selectedDropIds = new Set();
+
+        // Check authentication on page load
+        async function checkAuth() {
+            try {
+                const response = await fetch('/auth/status');
+                const data = await response.json();
+
+                if (!data.authenticated || !data.is_council) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+
+                // Update user badge
+                const user = data.user;
+                document.getElementById('userName').textContent = user.global_name || user.username;
+
+                if (user.avatar) {
+                    document.getElementById('userAvatar').src =
+                        `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+                } else {
+                    document.getElementById('userAvatar').src = '/static/default-avatar.png';
+                }
+
+                // Load drops data
+                loadDrops();
+                loadDropsStats();
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = '/auth/login';
+            }
+        }
+
+        // Alert functions
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+
+            const container = document.getElementById('alertContainer');
+            container.appendChild(alertDiv);
+
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Load drops with filters and pagination
+        async function loadDrops(page = 1) {
+            currentDropsPage = page;
+
+            const search = document.getElementById('dropSearchInput').value;
+            const valueFilter = document.getElementById('dropValueFilter').value;
+            const sortBy = document.getElementById('dropSortBy').value;
+            const sortOrder = document.getElementById('dropSortOrder').value;
+            const perPage = document.getElementById('dropsPerPage').value;
+
+            const params = new URLSearchParams({
+                page: page,
+                per_page: perPage,
+                sort: sortBy,
+                order: sortOrder
+            });
+
+            if (search) params.append('search', search);
+
+            if (valueFilter === 'with_value') {
+                params.append('has_value', 'true');
+            } else if (valueFilter === 'without_value') {
+                params.append('has_value', 'false');
+            }
+
+            try {
+                const response = await fetch(`/api/admin/drops?${params}`);
+                const data = await response.json();
+
+                allDropsData = data.data;
+                renderDropsTable(data.data);
+                renderDropsPagination(data.pagination);
+
+            } catch (error) {
+                console.error('Error loading drops:', error);
+                showAlert('Failed to load drops', 'error');
+            }
+        }
+
+        // Render drops table
+        function renderDropsTable(drops) {
+            const tbody = document.getElementById('dropsTableBody');
+
+            if (drops.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">No drops found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = drops.map(drop => {
+                const isSelected = selectedDropIds.has(drop.id);
+                const valueDisplay = drop.value !== null ? drop.value : '<span style="color: #9ca3af;">NULL</span>';
+                const rowStyle = (drop.value === null || drop.value === 0) ? 'background-color: rgba(217, 119, 6, 0.1);' : '';
+
+                return `
+                    <tr style="${rowStyle}">
+                        <td><input type="checkbox" class="drop-checkbox" data-id="${drop.id}" ${isSelected ? 'checked' : ''} onchange="toggleDropSelection(${drop.id})"></td>
+                        <td>${drop.id}</td>
+                        <td style="font-weight: 500;">${drop.name}</td>
+                        <td>${valueDisplay}</td>
+                        <td>
+                            <button onclick="editDrop(${drop.id})" class="btn btn-secondary btn-sm">Edit</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateBulkSelectUI();
+        }
+
+        // Render pagination
+        function renderDropsPagination(pagination) {
+            const { page, per_page, total, total_pages } = pagination;
+
+            const start = (page - 1) * per_page + 1;
+            const end = Math.min(page * per_page, total);
+            document.getElementById('dropsPageInfo').textContent =
+                `Showing ${start}-${end} of ${total} items`;
+
+            const buttons = [];
+
+            buttons.push(`
+                <button
+                    class="pagination-button"
+                    ${page === 1 ? 'disabled' : ''}
+                    onclick="loadDrops(${page - 1})">
+                    Previous
+                </button>
+            `);
+
+            const maxButtons = 5;
+            let startPage = Math.max(1, page - Math.floor(maxButtons / 2));
+            let endPage = Math.min(total_pages, startPage + maxButtons - 1);
+
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+
+            if (startPage > 1) {
+                buttons.push(`<button class="pagination-button" onclick="loadDrops(1)">1</button>`);
+                if (startPage > 2) buttons.push(`<span style="padding: 0 0.5rem;">...</span>`);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                buttons.push(`
+                    <button
+                        class="pagination-button ${i === page ? 'active' : ''}"
+                        onclick="loadDrops(${i})">
+                        ${i}
+                    </button>
+                `);
+            }
+
+            if (endPage < total_pages) {
+                if (endPage < total_pages - 1) buttons.push(`<span style="padding: 0 0.5rem;">...</span>`);
+                buttons.push(`<button class="pagination-button" onclick="loadDrops(${total_pages})">${total_pages}</button>`);
+            }
+
+            buttons.push(`
+                <button
+                    class="pagination-button"
+                    ${page === total_pages ? 'disabled' : ''}
+                    onclick="loadDrops(${page + 1})">
+                    Next
+                </button>
+            `);
+
+            document.getElementById('dropsPaginationButtons').innerHTML = buttons.join('');
+        }
+
+        // Search drops (debounced)
+        let searchTimeout;
+        function searchDrops() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadDrops(1);
+            }, 300);
+        }
+
+        // Filter drops
+        function filterDrops() {
+            loadDrops(1);
+        }
+
+        // Edit a drop
+        function editDrop(dropId) {
+            const drop = allDropsData.find(d => d.id === dropId);
+            if (!drop) return;
+
+            document.getElementById('editDropId').value = drop.id;
+            document.getElementById('editDropName').value = drop.name;
+            document.getElementById('editDropValue').value = drop.value !== null ? drop.value : '';
+
+            document.getElementById('editDropModal').classList.add('show');
+        }
+
+        // Close edit modal
+        function closeEditDropModal() {
+            document.getElementById('editDropModal').classList.remove('show');
+            document.getElementById('editDropForm').reset();
+        }
+
+        // Save drop
+        async function saveDrop(event) {
+            event.preventDefault();
+
+            const dropId = document.getElementById('editDropId').value;
+            const valueInput = document.getElementById('editDropValue').value;
+            const value = valueInput === '' ? null : parseInt(valueInput);
+
+            try {
+                const response = await fetch(`/api/admin/drops/${dropId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ value })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showAlert(`Updated ${result.name} successfully`);
+                    closeEditDropModal();
+                    loadDrops(currentDropsPage);
+                    loadDropsStats();
+                } else {
+                    const error = await response.json();
+                    showAlert(error.error || 'Failed to update drop', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving drop:', error);
+                showAlert('Failed to update drop', 'error');
+            }
+        }
+
+        // Load drops statistics
+        async function loadDropsStats() {
+            try {
+                const response = await fetch('/api/admin/drops/stats');
+                const stats = await response.json();
+
+                const avgDisplay = stats.avg_value ? `<span style="margin-right: 1rem;">Avg: ${Math.round(stats.avg_value)}</span>` : '';
+
+                document.getElementById('dropsStats').innerHTML = `
+                    <span style="margin-right: 1rem;">Total: ${stats.total_drops}</span>
+                    <span style="margin-right: 1rem;">With Values: ${stats.drops_with_value}</span>
+                    <span style="margin-right: 1rem; color: #fbbf24;">Without Values: ${stats.drops_with_value}</span>
+                    ${avgDisplay}
+                `;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Bulk selection functions
+        function toggleDropSelection(dropId) {
+            if (selectedDropIds.has(dropId)) {
+                selectedDropIds.delete(dropId);
+            } else {
+                selectedDropIds.add(dropId);
+            }
+            updateBulkSelectUI();
+        }
+
+        function toggleSelectAll() {
+            const checkbox = document.getElementById('selectAllDrops');
+            const checkboxes = document.querySelectorAll('.drop-checkbox');
+
+            checkboxes.forEach(cb => {
+                const dropId = parseInt(cb.dataset.id);
+                if (checkbox.checked) {
+                    selectedDropIds.add(dropId);
+                    cb.checked = true;
+                } else {
+                    selectedDropIds.delete(dropId);
+                    cb.checked = false;
+                }
+            });
+
+            updateBulkSelectUI();
+        }
+
+        function updateBulkSelectUI() {
+            const container = document.getElementById('dropsBulkSelectContainer');
+            const count = document.getElementById('selectedDropsCount');
+
+            if (selectedDropIds.size > 0) {
+                container.style.display = 'flex';
+                count.textContent = `${selectedDropIds.size} items selected`;
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function clearBulkSelection() {
+            selectedDropIds.clear();
+            document.querySelectorAll('.drop-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('selectAllDrops').checked = false;
+            updateBulkSelectUI();
+        }
+
+        function bulkSetValue() {
+            const value = prompt('Enter value for all selected items (or leave empty for NULL):');
+            if (value === null) return;
+
+            const numValue = value === '' ? null : parseInt(value);
+            if (value !== '' && isNaN(numValue)) {
+                showAlert('Invalid value', 'error');
+                return;
+            }
+
+            bulkUpdateSelectedDrops(numValue);
+        }
+
+        async function bulkUpdateSelectedDrops(value) {
+            const updates = Array.from(selectedDropIds).map(id => ({ id, value }));
+
+            try {
+                const response = await fetch('/api/admin/drops/bulk-update', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ updates })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showAlert(result.message);
+                    clearBulkSelection();
+                    loadDrops(currentDropsPage);
+                    loadDropsStats();
+                } else {
+                    const error = await response.json();
+                    showAlert(error.error || 'Failed to bulk update', 'error');
+                }
+            } catch (error) {
+                console.error('Error bulk updating:', error);
+                showAlert('Failed to bulk update drops', 'error');
+            }
+        }
+
+        // Bulk edit modal
+        function showBulkEditModal() {
+            document.getElementById('bulkEditModal').classList.add('show');
+        }
+
+        function closeBulkEditModal() {
+            document.getElementById('bulkEditModal').classList.remove('show');
+            document.getElementById('bulkEditForm').reset();
+        }
+
+        async function saveBulkEdit(event) {
+            event.preventDefault();
+
+            const text = document.getElementById('bulkEditText').value;
+            const lines = text.split('\n').filter(line => line.trim());
+
+            const updates = [];
+            const notFound = [];
+
+            showAlert('Processing bulk edit...', 'success');
+
+            for (const line of lines) {
+                const match = line.match(/^(.+?)\s*=\s*(\d+|null|NULL)?$/i);
+                if (!match) continue;
+
+                const itemName = match[1].trim();
+                const value = match[2] && !match[2].match(/null/i) ? parseInt(match[2]) : null;
+
+                try {
+                    const response = await fetch(`/api/admin/drops?search=${encodeURIComponent(itemName)}&per_page=1`);
+                    const data = await response.json();
+
+                    if (data.data.length > 0 && data.data[0].name.toLowerCase() === itemName.toLowerCase()) {
+                        updates.push({ id: data.data[0].id, value });
+                    } else {
+                        notFound.push(itemName);
+                    }
+                } catch (error) {
+                    console.error('Error searching for item:', itemName, error);
+                }
+            }
+
+            if (updates.length === 0) {
+                showAlert('No valid items found', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/drops/bulk-update', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ updates })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    let message = result.message;
+                    if (notFound.length > 0) {
+                        message += ` (${notFound.length} items not found: ${notFound.slice(0, 3).join(', ')}${notFound.length > 3 ? '...' : ''})`;
+                    }
+                    showAlert(message);
+                    closeBulkEditModal();
+                    loadDrops(currentDropsPage);
+                    loadDropsStats();
+                } else {
+                    showAlert('Failed to bulk update', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to bulk update', 'error');
+            }
+        }
+
+        // Export to CSV
+        function exportDropsCSV() {
+            const csv = ['ID,Name,Value'];
+            allDropsData.forEach(drop => {
+                csv.push(`${drop.id},"${drop.name}",${drop.value !== null ? drop.value : ''}`);
+            });
+
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `drops_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        // Logout function
+        function logout() {
+            window.location.href = '/auth/logout';
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>
