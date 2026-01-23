@@ -43,4 +43,4 @@ class Item(RecordModel):
 
     @property
     def hours_to_drop(self) -> Decimal:
-        return Decimal(self.drop_rate) / self.boss.ehb
+        return (Decimal(self.drop_rate) / self.boss.ehb).quantize(Decimal("0.01"))
