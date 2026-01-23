@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
@@ -38,3 +39,7 @@ class Item(RecordModel):
     boss: Mapped["Boss"] = relationship(
         back_populates="items",
     )
+
+    @property
+    def hours_to_drop(self) -> Decimal:
+        return Decimal(self.drop_rate) / self.boss.ehb

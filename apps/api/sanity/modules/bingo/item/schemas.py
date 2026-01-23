@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -28,3 +29,7 @@ class ItemBase(BaseModel):
 class ItemRead(ItemBase):
     created_at: datetime
     updated_at: Optional[datetime]
+
+
+class ItemReadWithCtx(ItemRead):
+    hours_to_drop: Decimal

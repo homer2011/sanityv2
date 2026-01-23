@@ -4,9 +4,8 @@ from sanity.common.pagination import ListResponse
 from sanity.db.deps import DatabaseReadSession, DatabaseWriteSession
 from sanity.errors.schemas import ResourceAlreadyExistsResponse, ResourceNotFoundResponse
 
-from ..boss.schemas import BossCreate, BossPatch, BossRead
-from ..item.schemas import ItemCreate, ItemPatch, ItemRead
-from .schemas import BossReadWithItems, ItemReadWithBoss
+from ..boss.schemas import BossCreate, BossPatch, BossRead, BossReadWithItems
+from ..item.schemas import ItemCreate, ItemPatch, ItemRead, ItemReadWithCtx
 from .service import catalogue_service
 
 router = APIRouter(prefix="/catalogue", tags=["Bingo Catalogue"])
@@ -113,7 +112,7 @@ async def create_item_by_boss_id(
 
 @router.get(
     "/bosses/{boss_id}/items",
-    response_model=ListResponse[ItemRead],
+    response_model=ListResponse[ItemReadWithCtx],
     responses={404: ResourceNotFoundResponse},
 )
 async def list_items_by_boss_id(
@@ -133,7 +132,7 @@ async def list_items_by_boss_id(
 
 @router.get(
     "/items/{item_id}",
-    response_model=ItemReadWithBoss,
+    response_model=ItemReadWithCtx,
     responses={404: ResourceNotFoundResponse},
 )
 async def get_item_by_id(

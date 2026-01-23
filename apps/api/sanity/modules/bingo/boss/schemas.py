@@ -1,8 +1,13 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from ..item.schemas import ItemBase
+
+if TYPE_CHECKING:
+    from ..item.schemas import ItemBase
 
 
 class BossCreate(BaseModel):
@@ -26,3 +31,7 @@ class BossBase(BaseModel):
 class BossRead(BossBase):
     created_at: datetime
     updated_at: Optional[datetime]
+
+
+class BossReadWithItems(BossRead):
+    items: list["ItemBase"]
