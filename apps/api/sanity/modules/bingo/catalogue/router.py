@@ -13,7 +13,7 @@ router = APIRouter(prefix="/catalogue", tags=["Bingo Catalogue"])
 
 @router.get(
     "/bosses",
-    response_model=ListResponse[BossReadWithItems],
+    response_model=ListResponse[BossRead],
 )
 async def list_bosses(
     db_session: DatabaseReadSession,
