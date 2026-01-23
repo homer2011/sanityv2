@@ -27,7 +27,7 @@ class Boss(RecordModel):
         nullable=False,
     )
 
-    items: Mapped[list["Item"]] = relationship(
+    uniques: Mapped[list["Item"]] = relationship(
         back_populates="boss",
         cascade="all, delete-orphan",
         passive_deletes=True,

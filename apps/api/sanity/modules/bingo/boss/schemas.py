@@ -34,4 +34,4 @@ class BossRead(BossBase):
 
 
 class BossReadWithItems(BossRead):
-    items: list["ItemBase"]
+    uniques: list["ItemBase"]
