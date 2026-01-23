@@ -1,7 +1,8 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import CheckConstraint, Numeric, String
+from sqlalchemy import CheckConstraint, Numeric
+from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.db.models import RecordModel
@@ -15,7 +16,7 @@ class Boss(RecordModel):
     __table_args__ = (CheckConstraint("ehb > 0", name="boss_ehb_gt_0"),)
 
     name: Mapped[str] = mapped_column(
-        String(255),
+        CITEXT,
         unique=True,
         nullable=False,
         index=True,

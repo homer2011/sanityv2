@@ -1,7 +1,8 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Integer, UniqueConstraint
+from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.db.models import RecordModel
@@ -15,7 +16,7 @@ class Item(RecordModel):
     __table_args__ = (UniqueConstraint("boss_id", "name"),)
 
     name: Mapped[str] = mapped_column(
-        String(255),
+        CITEXT,
         nullable=False,
         index=True,
     )
