@@ -611,7 +611,6 @@ async def create_seed_data(session: AsyncSession):
             print(f"Boss {boss_dict['name']} already exists")
 
     print("Seed data created successfully!")
-    print("Created 50 bosses and their unique items.")
 
 
 async def main() -> None:
