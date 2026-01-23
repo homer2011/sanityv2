@@ -57,6 +57,7 @@ class CatalogueService:
         return await repository.update(
             boss,
             update_dict=boss_patch.model_dump(exclude_unset=True),
+            flush=True,
         )
 
     async def delete_boss(self, *, session: AsyncSession, boss_id: int) -> None:
@@ -135,6 +136,7 @@ class CatalogueService:
         return await repository.update(
             item,
             update_dict=item_patch.model_dump(exclude_unset=True),
+            flush=True,
         )
 
     async def delete_item(self, *, session: AsyncSession, item_id: int) -> None:
