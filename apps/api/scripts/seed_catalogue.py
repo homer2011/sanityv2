@@ -320,7 +320,7 @@ CATALOGUE_SEED: List[BossDict] = [
     },
     {
         "name": "Phantom Muspah",
-        "ehb": Decimal("30.0"),
+        "ehb": Decimal("26.0"),
         "uniques": [
             {"name": "Ancient icon", "drop_rate": 50, "point_value": 0},
             {"name": "Magic seeds", "drop_rate": 534, "point_value": 0},
