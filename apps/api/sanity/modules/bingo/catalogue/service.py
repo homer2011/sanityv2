@@ -105,7 +105,11 @@ class CatalogueService:
             boss_id=boss_id,
         )
 
-        statement = item_repository.get_base_statement().where(Item.boss_id == boss_id)
+        statement = (
+            item_repository.get_base_statement()
+            .where(Item.boss_id == boss_id)
+            .options(joinedload(Item.boss))
+        )
 
         return await item_repository.get_all(statement)
 
