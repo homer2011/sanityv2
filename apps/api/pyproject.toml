@@ -25,6 +25,7 @@ lint = "ruff check ."
 lint_fix = "ruff check --fix ."
 db_migrate = "uv run alembic upgrade head"
 db_downgrade = "uv run alembic downgrade -1"
+seed_catalogue = "uv run python -m scripts.seed_catalogue"
 
 [tool.ruff]
 target-version = "py314"
