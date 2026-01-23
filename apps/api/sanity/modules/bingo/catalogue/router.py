@@ -18,7 +18,7 @@ router = APIRouter(prefix="/catalogue", tags=["Bingo Catalogue"])
 async def list_bosses(
     db_session: DatabaseReadSession,
 ):
-    bosses = await catalogue_service.list_bosses_with_items(
+    bosses = await catalogue_service.list_bosses(
         session=db_session,
     )
 
@@ -119,7 +119,7 @@ async def list_items_by_boss_id(
     db_session: DatabaseReadSession,
     boss_id: int,
 ):
-    items = await catalogue_service.list_items_for_boss(
+    items = await catalogue_service.list_items_with_context_for_boss(
         session=db_session,
         boss_id=boss_id,
     )
@@ -139,7 +139,7 @@ async def get_item_by_id(
     db_session: DatabaseReadSession,
     item_id: int,
 ):
-    return await catalogue_service.get_item_with_boss(
+    return await catalogue_service.get_item_with_context(
         session=db_session,
         item_id=item_id,
     )
