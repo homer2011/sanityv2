@@ -1138,7 +1138,7 @@ def get_auditlog_optimized():
                 a.actionDate
             FROM
                 sanity2.auditlogs a
-                LEFT JOIN sanity2.users u ON u.userId = a.userId
+                LEFT JOIN sanity2.uss u ON u.userId = a.userId
                 LEFT JOIN sanity2.auditactiontype a2 ON a2.id = a.actionType
             ORDER BY
                 a.actionDate DESC
@@ -1195,7 +1195,6 @@ def get_auditlog_optimized():
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
-
 
 @app.route('/api/discordmsgssentyearly', methods=['GET'])
 def get_yearly_discord_msgs():
@@ -2354,7 +2353,6 @@ def update_bingo_board():
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
-
 
 @app.route('/api/user/rankupnames', methods=['GET'])
 def get_users_ranks():
