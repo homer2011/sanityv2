@@ -31,7 +31,7 @@ class CatalogueService:
 
     async def list_bosses_with_items(self, *, session: AsyncSession) -> Sequence[Boss]:
         repository = BossRepository(session)
-        statement = repository.get_base_statement().options(joinedload(Boss.items))
+        statement = repository.get_base_statement().options(joinedload(Boss.uniques))
 
         return await repository.get_all(statement)
 
@@ -159,7 +159,7 @@ class CatalogueService:
         statement = repository.get_base_statement().where(Boss.id == boss_id)
 
         if include_relationships:
-            statement = statement.options(joinedload(Boss.items))
+            statement = statement.options(joinedload(Boss.uniques))
 
         boss = await repository.get_one_or_none(statement)
         if boss is None:

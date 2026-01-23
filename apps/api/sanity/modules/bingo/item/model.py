@@ -38,7 +38,7 @@ class Item(RecordModel):
     )
 
     boss: Mapped["Boss"] = relationship(
-        back_populates="items",
+        back_populates="uniques",
     )
 
     @property
