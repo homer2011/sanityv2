@@ -1,24 +1,54 @@
 import os
 from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, session, redirect, url_for
+import requests
+from functools import wraps
+from datetime import timedelta
 import mysql.connector
 from flask_cors import CORS  # To allow cross-origin requests from your HTML file
 import pathlib
 
 # Load environment variables from .env file
+# Load environment variables from .env file
 current_dir = pathlib.Path(__file__).parent
 dotenv_path = current_dir / 'flask.env'
-# Resolve to an absolute path for robustness
 dotenv_path = dotenv_path.resolve()
 
 if dotenv_path.exists():
     load_dotenv(dotenv_path)
+    print(f"OK Loaded environment variables from: {dotenv_path}")
+else:
+    print(f"FAIL Warning: flask.env not found at {dotenv_path}")
 
 flaskuser = os.getenv("flaskuser")
 flaskpassword = os.getenv("flaskpassword")
 
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Discord OAuth Config
+DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
+DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
+DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI")
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID")
+COUNCIL_ROLE_IDS = os.getenv("COUNCIL_ROLE_IDS", "").split(",")
+
+print(f"DISCORD_CLIENT_ID loaded: {DISCORD_CLIENT_ID is not None}")
+
+
+# Flask app with custom template folder
+parent_dir = current_dir.parent  # www/
+template_folder = parent_dir / 'html'
+app = Flask(__name__, template_folder=str(template_folder))
+
+app.secret_key = os.getenv("SECRET_KEY", "change-this-secret-key")
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
+
+CORS(app, supports_credentials=True)
+
+# Discord API endpoint
+DISCORD_API_ENDPOINT = "https://discord.com/api/v10"
 
 # MySQL Database Configuration for sanity2
 DB_CONFIG = {
@@ -35,6 +65,616 @@ BINGO_DB_CONFIG = {
     'password': f'{flaskpassword}',
     'database': 'sanitybingo'
 }
+
+
+# --- AUTHENTICATION DECORATORS AND HELPER FUNCTIONS ---
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'discord_user' not in session:
+            return jsonify({"error": "Authentication required"}), 401
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def council_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'discord_user' not in session:
+            return jsonify({"error": "Authentication required"}), 401
+        if not session.get('is_council', False):
+            return jsonify({"error": "Council permissions required"}), 403
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def exchange_code(code):
+    data = {
+        'client_id': DISCORD_CLIENT_ID,
+        'client_secret': DISCORD_CLIENT_SECRET,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': DISCORD_REDIRECT_URI
+    }
+    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    response = requests.post(f'{DISCORD_API_ENDPOINT}/oauth2/token', data=data, headers=headers)
+    response.raise_for_status()
+    return response.json()
+
+
+def get_user_info(access_token):
+    headers = {'Authorization': f'Bearer {access_token}'}
+    response = requests.get(f'{DISCORD_API_ENDPOINT}/users/@me', headers=headers)
+    response.raise_for_status()
+    return response.json()
+
+
+def get_user_guild_member(user_id):
+    headers = {'Authorization': f'Bot {DISCORD_BOT_TOKEN}'}
+    response = requests.get(
+        f'{DISCORD_API_ENDPOINT}/guilds/{DISCORD_GUILD_ID}/members/{user_id}',
+        headers=headers
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def check_council_role(member_data):
+    user_roles = member_data.get('roles', [])
+    return any(role_id in COUNCIL_ROLE_IDS for role_id in user_roles)
+
+
+# --- DISCORD OAUTH ROUTES ---
+
+@app.route('/auth/login')
+def discord_login():
+    discord_login_url = (
+        f"{DISCORD_API_ENDPOINT}/oauth2/authorize?"
+        f"client_id={DISCORD_CLIENT_ID}&"
+        f"redirect_uri={DISCORD_REDIRECT_URI}&"
+        f"response_type=code&"
+        f"scope=identify"
+    )
+    return redirect(discord_login_url)
+
+
+@app.route('/auth/callback')
+def discord_callback():
+    code = request.args.get('code')
+    if not code:
+        return jsonify({"error": "No code provided"}), 400
+
+    try:
+        token_data = exchange_code(code)
+        access_token = token_data['access_token']
+        user_info = get_user_info(access_token)
+        user_id = user_info['id']
+        member_data = get_user_guild_member(user_id)
+        is_council = check_council_role(member_data)
+
+        session.permanent = True
+        session['discord_user'] = {
+            'id': user_id,
+            'username': user_info['username'],
+            'discriminator': user_info.get('discriminator', '0'),
+            'avatar': user_info.get('avatar'),
+            'global_name': user_info.get('global_name')
+        }
+        session['is_council'] = is_council
+        session['access_token'] = access_token
+
+        if is_council:
+            return redirect('/admin.html')
+        else:
+            return redirect('/?error=not_council')
+
+    except Exception as e:
+        print(f"OAuth error: {e}")
+        return jsonify({"error": "Authentication failed"}), 500
+
+
+@app.route('/auth/logout')
+def logout():
+    session.clear()
+    return redirect('/')
+
+
+@app.route('/auth/status')
+def auth_status():
+    if 'discord_user' not in session:
+        return jsonify({"authenticated": False})
+
+    return jsonify({
+        "authenticated": True,
+        "user": session['discord_user'],
+        "is_council": session.get('is_council', False)
+    })
+
+
+# --- ADMIN PANEL ROUTE ---
+
+@app.route('/api/admin/drops', methods=['GET'])
+@council_required
+def get_drops():
+    """
+    Get drops with optional filtering and pagination
+    Query params:
+    - search: search by name
+    - has_value: 'true' to show items with values, 'false' for NULL values
+    - page: page number (default 1)
+    - per_page: items per page (default 50, max 500)
+    - sort: 'name', 'value', 'id' (default 'value')
+    - order: 'asc' or 'desc' (default 'asc')
+    """
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+
+        # Get query parameters
+        search = request.args.get('search', '').strip()
+        has_value = request.args.get('has_value', '')
+        page = max(1, int(request.args.get('page', 1)))
+        per_page = min(500, max(10, int(request.args.get('per_page', 50))))
+        sort_by = request.args.get('sort', 'value')
+        order = request.args.get('order', 'asc')
+
+        # Validate sort column
+        valid_sorts = ['name', 'value', 'id']
+        if sort_by not in valid_sorts:
+            sort_by = 'value'
+
+        # Validate order
+        if order not in ['asc', 'desc']:
+            order = 'asc'
+
+        # Build WHERE clause
+        where_conditions = []
+        params = []
+
+        if search:
+            where_conditions.append("name LIKE %s")
+            params.append(f"%{search}%")
+
+        if has_value == 'true':
+            where_conditions.append("value IS NOT NULL AND value > 0")
+        elif has_value == 'false':
+            where_conditions.append("(value IS NULL OR value = 0)")
+
+        where_clause = " AND ".join(where_conditions) if where_conditions else "1=1"
+
+        # Get total count
+        count_query = f"SELECT COUNT(*) as total FROM sanity2.drops WHERE {where_clause}"
+        cursor.execute(count_query, params)
+        total = cursor.fetchone()['total']
+
+        # Get paginated results
+        offset = (page - 1) * per_page
+
+        # Special sorting: NULL values and 0 values should come last when sorting by value DESC
+        if sort_by == 'value':
+            if order == 'desc':
+                sort_clause = "CASE WHEN value IS NULL THEN 1 WHEN value = 0 THEN 1 ELSE 0 END, value DESC"
+            else:
+                # For ascending, prioritize items with values, then NULL/0 values
+                sort_clause = "CASE WHEN value IS NULL OR value = 0 THEN 1 ELSE 0 END, value ASC"
+        else:
+            sort_clause = f"{sort_by} {order.upper()}"
+
+        query = f"""
+            SELECT id, name, value
+            FROM sanity2.drops
+            WHERE {where_clause}
+            ORDER BY {sort_clause}
+            LIMIT %s OFFSET %s
+        """
+
+        params.extend([per_page, offset])
+        cursor.execute(query, params)
+        drops = cursor.fetchall()
+
+        return jsonify({
+            'data': drops,
+            'pagination': {
+                'page': page,
+                'per_page': per_page,
+                'total': total,
+                'total_pages': (total + per_page - 1) // per_page
+            }
+        })
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/admin/drops/<int:drop_id>', methods=['PUT'])
+@council_required
+def update_drop(drop_id):
+    """Update a drop value"""
+    data = request.get_json()
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+
+        # Debug: Print what we're looking for
+        print(f"Looking for drop_id: {drop_id}")
+
+        # Validate value
+        value = data.get('value')
+        if value is not None:
+            try:
+                value = int(value)
+            except (ValueError, TypeError):
+                return jsonify({"error": "Value must be an integer or null"}), 400
+
+        # Get the drop info FIRST - use correct query
+        query = "SELECT name, value FROM sanity2.drops WHERE id = %s"
+        cursor.execute(query, (drop_id,))
+        drop_result = cursor.fetchone()
+
+        # Debug: Check what we got
+        print(f"Drop result: {drop_result}")
+
+        if not drop_result:
+            return jsonify({"error": "Drop not found"}), 404
+
+        drop_name = drop_result['name']
+        old_value = drop_result['value']
+
+        # Update the drop
+        update_query = "UPDATE sanity2.drops SET value = %s WHERE id = %s"
+        cursor.execute(update_query, (value, drop_id))
+        connection.commit()
+
+        print(f"Updated {drop_name} from {old_value} to {value}")
+
+        # Get Discord user ID from session
+        discord_user = session.get('discord_user', {})
+        discord_user_id = discord_user.get('id')
+
+        # Try to create audit log (but don't fail if it doesn't work)
+        if discord_user_id:
+            try:
+                # Format: ItemName:oldValue->newValue
+                action_note = f"{drop_name}:{old_value if old_value is not None else 'NULL'}->{value if value is not None else 'NULL'}"
+
+                audit_query = """
+                    INSERT INTO sanity2.auditlogs (userId, affectedUsers, actionType, actionNote, actionDate) 
+                    VALUES (%s, %s, %s, %s, NOW())
+                """
+
+                cursor.execute(audit_query, (discord_user_id, drop_name, 10, action_note))
+                connection.commit()
+                print(f"Audit log created for user {discord_user_id}")
+            except mysql.connector.Error as audit_err:
+                # Don't fail the update if audit logging fails
+                print(f"Warning: Audit log failed: {audit_err}")
+                # Still return success since the drop was updated
+
+        return jsonify({"message": "Drop updated successfully", "name": drop_name})
+
+    except mysql.connector.Error as err:
+        if connection:
+            connection.rollback()
+        print(f"Database error: {err}")
+        return jsonify({"error": str(err)}), 500
+    except Exception as e:
+        if connection:
+            connection.rollback()
+        print(f"Unexpected error: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+# ============================================
+# Updated bulk_update_drops endpoint
+# ============================================
+
+@app.route('/api/admin/drops/bulk-update', methods=['POST'])
+@council_required
+def bulk_update_drops():
+    """Bulk update multiple drop values at once"""
+    data = request.get_json()
+    updates = data.get('updates', [])
+
+    if not updates or not isinstance(updates, list):
+        return jsonify({"error": "Invalid updates format"}), 400
+
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+
+        updated_count = 0
+        updated_items = []
+
+        for update in updates:
+            drop_id = update.get('id')
+            value = update.get('value')
+
+            if drop_id is None:
+                continue
+
+            # Validate value
+            if value is not None:
+                try:
+                    value = int(value)
+                except (ValueError, TypeError):
+                    continue
+
+            # Get item name before updating
+            cursor.execute("SELECT name FROM sanity2.drops WHERE id = %s", (drop_id,))
+            result = cursor.fetchone()
+            if not result:
+                continue
+
+            item_name = result['name']
+
+            # Update the drop
+            query = "UPDATE sanity2.drops SET value = %s WHERE id = %s"
+            cursor.execute(query, (value, drop_id))
+
+            if cursor.rowcount > 0:
+                updated_count += 1
+                updated_items.append(f"{item_name}:{value}")
+
+        connection.commit()
+
+        # Create audit log for bulk update
+        discord_user = session.get('discord_user', {})
+        discord_user_id = discord_user.get('id')
+
+        if discord_user_id and updated_count > 0:
+            # affectedUsers = comma-separated list of first few items
+            affected_text = ', '.join([item.split(':')[0] for item in updated_items[:5]])
+            if len(updated_items) > 5:
+                affected_text += f' +{len(updated_items) - 5} more'
+
+            # Truncate if needed (affectedUsers is varchar(1000))
+            if len(affected_text) > 950:
+                affected_text = affected_text[:950] + '...'
+
+            # actionNote = summary of changes
+            action_note = f"Bulk update: {updated_count} items"
+
+            audit_query = """
+                INSERT INTO sanity2.auditlogs (userId, affectedUsers, actionType, actionNote, actionDate) 
+                VALUES (%s, %s, %s, %s, NOW())
+            """
+
+            try:
+                cursor.execute(audit_query, (discord_user_id, affected_text, 10, action_note))
+                connection.commit()
+            except mysql.connector.Error as audit_err:
+                print(f"Audit log error: {audit_err}")
+
+        return jsonify({
+            "message": f"Successfully updated {updated_count} drops",
+            "updated_count": updated_count
+        })
+
+    except mysql.connector.Error as err:
+        if connection:
+            connection.rollback()
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/admin/drops/stats', methods=['GET'])
+@council_required
+def get_drops_stats():
+    """Get statistics about drops"""
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+
+        query = """
+            SELECT 
+                COUNT(*) as total_drops,
+                COUNT(CASE WHEN value IS NOT NULL AND value > 0 THEN 1 END) as drops_with_value,
+                COUNT(CASE WHEN value IS NULL OR value = 0 THEN 1 END) as drops_without_value,
+                AVG(CASE WHEN value > 0 THEN value END) as avg_value,
+                MAX(value) as max_value,
+                MIN(CASE WHEN value > 0 THEN value END) as min_value
+            FROM sanity2.drops
+        """
+
+        cursor.execute(query)
+        stats = cursor.fetchone()
+
+        return jsonify(stats)
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+@app.route('/admin')
+def admin_panel():
+    if 'discord_user' not in session:
+        return redirect('/auth/login')
+    if not session.get('is_council', False):
+        return "Access Denied: Council permissions required", 403
+    return render_template('admin.html')
+
+
+# --- ADMIN API ENDPOINTS ---
+
+@app.route('/api/admin/dairies', methods=['GET'])
+@council_required
+def get_admin_dairies():
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+        query = "SELECT * FROM sanity2.dairies ORDER BY id"
+        cursor.execute(query)
+        dairies = cursor.fetchall()
+        return jsonify(dairies)
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/admin/dairies', methods=['POST'])
+@council_required
+def create_admin_dairy():
+    data = request.get_json()
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        query = "INSERT INTO sanity2.dairies (name, value, description) VALUES (%s, %s, %s)"
+        cursor.execute(query, (data['name'], data['value'], data.get('description', '')))
+        connection.commit()
+        return jsonify({"message": "Dairy created", "id": cursor.lastrowid}), 201
+    except mysql.connector.Error as err:
+        if connection:
+            connection.rollback()
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/admin/dairies/<int:dairy_id>', methods=['PUT'])
+@council_required
+def update_admin_dairy(dairy_id):
+    data = request.get_json()
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        query = "UPDATE sanity2.dairies SET name = %s, value = %s, description = %s WHERE id = %s"
+        cursor.execute(query, (data['name'], data['value'], data.get('description', ''), dairy_id))
+        connection.commit()
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Not found"}), 404
+        return jsonify({"message": "Updated successfully"})
+    except mysql.connector.Error as err:
+        if connection:
+            connection.rollback()
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/admin/dairies/<int:dairy_id>', methods=['DELETE'])
+@council_required
+def delete_admin_dairy(dairy_id):
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        query = "DELETE FROM sanity2.dairies WHERE id = %s"
+        cursor.execute(query, (dairy_id,))
+        connection.commit()
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Not found"}), 404
+        return jsonify({"message": "Deleted successfully"})
+    except mysql.connector.Error as err:
+        if connection:
+            connection.rollback()
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/admin/drop-values', methods=['GET'])
+@council_required
+def get_admin_drop_values():
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor(dictionary=True)
+        query = "SELECT id, bossName, item, itemPoints, droprate, hoursToGetDrop FROM sanity2.bingo_all_items ORDER BY bossName, item"
+        cursor.execute(query)
+        items = cursor.fetchall()
+        return jsonify(items)
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/admin/drop-values/<int:item_id>', methods=['PUT'])
+@council_required
+def update_admin_drop_value(item_id):
+    data = request.get_json()
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        query = "UPDATE sanity2.bingo_all_items SET bossName=%s, item=%s, itemPoints=%s, droprate=%s, hoursToGetDrop=%s WHERE id=%s"
+        cursor.execute(query, (
+        data['bossName'], data['item'], data['itemPoints'], data['droprate'], data.get('hoursToGetDrop'), item_id))
+        connection.commit()
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Not found"}), 404
+        return jsonify({"message": "Updated successfully"})
+    except mysql.connector.Error as err:
+        if connection:
+            connection.rollback()
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+@app.route('/api/admin/audit-log', methods=['POST'])
+@council_required
+def create_admin_audit_log():
+    data = request.get_json()
+    connection = None
+    try:
+        connection = mysql.connector.connect(**DB_CONFIG)
+        cursor = connection.cursor()
+        user_info = session.get('discord_user', {})
+        admin_username = user_info.get('username', 'Unknown')
+        query = "INSERT INTO sanity2.auditlogs (actionNote, actionDate) VALUES (%s, NOW())"
+        action_note = f"ADMIN ACTION by {admin_username}: {data['action']}"
+        cursor.execute(query, (action_note,))
+        connection.commit()
+        return jsonify({"message": "Logged"}), 201
+    except mysql.connector.Error as err:
+        if connection:
+            connection.rollback()
+        return jsonify({"error": str(err)}), 500
+    finally:
+        if connection and connection.is_connected():
+            cursor.close()
+            connection.close()
 
 
 # --- EXISTING API ENDPOINTS (No changes here) ---
@@ -192,7 +832,7 @@ def get_user_ehb():
     connection = None
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
-        cursor = connection.cursor(dictionary=True) # dictionary=True makes rows accessible by column name
+        cursor = connection.cursor(dictionary=True)  # dictionary=True makes rows accessible by column name
 
         query = """
             SELECT
@@ -228,6 +868,7 @@ def get_user_ehb():
             cursor.close()
             connection.close()
             print("MySQL connection closed")
+
 
 @app.route('/api/miscroles', methods=['GET'])
 def get_miscroles():
@@ -315,7 +956,6 @@ def get_bingo_drops():
             cursor.close()
             connection.close()
             print("MySQL connection closed")
-
 
 
 @app.route('/api/discordProfileUrl', methods=['GET'])
@@ -555,6 +1195,7 @@ def get_auditlog_optimized():
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
+
 
 @app.route('/api/discordmsgssentyearly', methods=['GET'])
 def get_yearly_discord_msgs():
@@ -1230,6 +1871,7 @@ def get_bingo_teammembers():
             cursor.close()
             connection.close()
 
+
 @app.route('/api/bingo/board', methods=['GET'])
 def get_bingo_board():
     """
@@ -1272,6 +1914,7 @@ def get_bingo_board():
             cursor.close()
             connection.close()
 
+
 @app.route('/api/bingo/events', methods=['GET'])
 def get_bingo_events():
     """
@@ -1300,8 +1943,8 @@ def get_bingo_events():
             connection.close()
 
 
-
-@app.route('/api/bingo/raiditemvalues', methods=['GET']) #WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS
+@app.route('/api/bingo/raiditemvalues', methods=[
+    'GET'])  # WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS#WORKS
 def get_raid_item_values():
     """
     Fetches raid item point values for the active bingo event.
@@ -1344,7 +1987,8 @@ def get_boss_ehb_values():
             cursor.close()
             connection.close()
 
-@app.route('/api/bingo/tileitems', methods=['GET']) #EHHHHHHHHHHHHHHHHHHHHH
+
+@app.route('/api/bingo/tileitems', methods=['GET'])  # EHHHHHHHHHHHHHHHHHHHHH
 def get_bingo_tileitems():
     """
     Fetches detailed information for all teams in the active bingo event.
@@ -1369,7 +2013,7 @@ def get_bingo_tileitems():
             connection.close()
 
 
-@app.route('/api/bingo/teams', methods=['GET']) #EHHHHHHHHHHHHHHHHHHHHH
+@app.route('/api/bingo/teams', methods=['GET'])  # EHHHHHHHHHHHHHHHHHHHHH
 def get_bingo_teams():
     """
     Fetches detailed information for all teams in the active bingo event.
@@ -1403,7 +2047,7 @@ def get_bingo_teams():
             connection.close()
 
 
-@app.route('/api/bingo/bossitems', methods=['GET']) #EHHHHHHHHHHHHHHHHHHHHH
+@app.route('/api/bingo/bossitems', methods=['GET'])  # EHHHHHHHHHHHHHHHHHHHHH
 def get_bingo_boss_items():
     """
     Fetches detailed information for all teams in the active bingo event.
@@ -1428,7 +2072,6 @@ def get_bingo_boss_items():
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
-
 
 
 @app.route('/api/bingo/overview', methods=['GET'])
@@ -1712,6 +2355,7 @@ def update_bingo_board():
             cursor.close()
             connection.close()
 
+
 @app.route('/api/user/rankupnames', methods=['GET'])
 def get_users_ranks():
     """
@@ -1756,6 +2400,7 @@ def get_boss_items_for_generator():
         if connection and connection.is_connected():
             cursor.close()
             connection.close()
+
 
 @app.route('/api/bingo/create_event', methods=['POST'])
 def create_new_event():
@@ -1896,11 +2541,9 @@ def delete_boss_ehb():
             connection.close()
 
 
-
 # Add other endpoints like /api/bingo/overview and /api/bingo/ehb here
 # These can be complex and may require multiple queries similar to the /teams endpoint.
 # For now, they will return mock data in the frontend.
-
 
 
 @app.route('/')
@@ -1909,9 +2552,8 @@ def index():
     Serves a simple message indicating the backend is running.
     The actual frontend will be served by your web server or opened directly.
     """
-    return "MySQL Data API is running."
+    return render_template("index.html")
 
 
 """if __name__ == '__main__':
     app.run(debug=True)"""
-
