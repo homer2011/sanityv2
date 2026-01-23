@@ -29,9 +29,9 @@ class CatalogueService:
             flush=True,
         )
 
-    async def list_bosses_with_items(self, *, session: AsyncSession) -> Sequence[Boss]:
+    async def list_bosses(self, *, session: AsyncSession) -> Sequence[Boss]:
         repository = BossRepository(session)
-        statement = repository.get_base_statement().options(joinedload(Boss.uniques))
+        statement = repository.get_base_statement()
 
         return await repository.get_all(statement)
 
@@ -97,7 +97,9 @@ class CatalogueService:
             flush=True,
         )
 
-    async def list_items_for_boss(self, *, session: AsyncSession, boss_id: int) -> Sequence[Item]:
+    async def list_items_with_context_for_boss(
+        self, *, session: AsyncSession, boss_id: int
+    ) -> Sequence[Item]:
         boss_repository = BossRepository(session)
         item_repository = ItemRepository(session)
 
@@ -114,7 +116,7 @@ class CatalogueService:
 
         return await item_repository.get_all(statement)
 
-    async def get_item_with_boss(self, *, session: AsyncSession, item_id: int) -> Item:
+    async def get_item_with_context(self, *, session: AsyncSession, item_id: int) -> Item:
         repository = ItemRepository(session)
 
         return await self._get_item_by_id_or_raise(
