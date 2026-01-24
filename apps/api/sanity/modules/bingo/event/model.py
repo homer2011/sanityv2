@@ -19,7 +19,7 @@ class Event(RecordModel):
 
     __tablename__ = "events"
 
-    title: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
     )
