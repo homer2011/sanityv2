@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from sanity.config import settings
 from sanity.db.models import Base
 from sanity.modules.bingo.boss.model import Boss  # noqa: F401
+from sanity.modules.bingo.event.model import Event  # noqa: F401
 from sanity.modules.bingo.item.model import Item  # noqa: F401
 
 # this is the Alembic Config object, which provides
