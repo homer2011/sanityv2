@@ -1,4 +1,4 @@
-from apps.api.sanity.db.repository import RepositoryBase
+from sanity.db.repository import RepositoryBase
 
 from .model import Event
 
