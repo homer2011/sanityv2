@@ -218,19 +218,19 @@ Catalogue is a stable dependency for tiles.
 
 Acceptance checks:
 
-- [ ] Can create/list/update bosses and items
-- [ ] Items cannot exist without a boss
-- [ ] List items by boss works
+- [x] Can create/list/update bosses and items
+- [x] Items cannot exist without a boss
+- [x] List items by boss works
 
 ### Phase 2 — Events (the root aggregate)
 
-- [ ] Implement `Event` model + schemas + CRUD endpoints
-- [ ] Add validation on schedule window (starts_at < ends_at)
-- [ ] Add event state fields if needed (DRAFT/ACTIVE/COMPLETED) (optional)
+- [x] Implement `Event` model + schemas + CRUD endpoints
+- [x] Add validation on schedule window (starts_at < ends_at)
+- [x] Add event state fields if needed (DRAFT/ACTIVE/COMPLETED) (optional)
 
 Acceptance checks:
 
-- [ ] Can create/list/get/update/delete events
+- [x] Can create/list/get/update/delete events
 
 ### Phase 3 — Board + Tiles (board is 1:1 with event)
 
