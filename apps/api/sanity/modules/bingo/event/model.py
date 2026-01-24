@@ -1,10 +1,11 @@
 from datetime import datetime
 from enum import StrEnum
 
-from apps.api.sanity.common.utils import utc_now
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime
+from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.orm import Mapped, mapped_column
 
+from sanity.common.utils import utc_now
 from sanity.db.models import RecordModel
 
 
@@ -20,8 +21,10 @@ class Event(RecordModel):
     __tablename__ = "events"
 
     name: Mapped[str] = mapped_column(
-        String(255),
+        CITEXT,
+        unique=True,
         nullable=False,
+        index=True,
     )
 
     starts_at: Mapped[datetime | None] = mapped_column(
