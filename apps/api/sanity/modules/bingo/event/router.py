@@ -5,6 +5,7 @@ from sanity.db.deps import DatabaseReadSession, DatabaseWriteSession
 from sanity.errors.schemas import ResourceAlreadyExistsResponse, ResourceNotFoundResponse
 
 from .schemas import EventCreate, EventPatch, EventRead
+from .service import event_service
 
 router = APIRouter(prefix="/events", tags=["Bingo Events"])
 
@@ -13,10 +14,17 @@ router = APIRouter(prefix="/events", tags=["Bingo Events"])
     "",
     response_model=ListResponse[EventRead],
 )
-def list_events(
+async def list_events(
     db_session: DatabaseReadSession,
 ):
-    pass
+    events = await event_service.list_events(
+        session=db_session,
+    )
+
+    return ListResponse(
+        total=len(events),
+        items=events,
+    )
 
 
 @router.post(
@@ -25,11 +33,14 @@ def list_events(
     response_model=EventRead,
     responses={409: ResourceAlreadyExistsResponse},
 )
-def create_event(
+async def create_event(
     db_session: DatabaseWriteSession,
     event_create: EventCreate,
 ):
-    pass
+    return await event_service.create_event(
+        session=db_session,
+        event_create=event_create,
+    )
 
 
 @router.get(
@@ -37,11 +48,14 @@ def create_event(
     response_model=EventRead,
     responses={404: ResourceNotFoundResponse},
 )
-def get_event_by_id(
+async def get_event_by_id(
     db_session: DatabaseReadSession,
     event_id: int,
 ):
-    pass
+    return await event_service.get_event(
+        session=db_session,
+        event_id=event_id,
+    )
 
 
 @router.patch(
@@ -49,12 +63,16 @@ def get_event_by_id(
     response_model=EventRead,
     responses={404: ResourceNotFoundResponse},
 )
-def patch_event_by_id(
+async def patch_event_by_id(
     db_session: DatabaseWriteSession,
     event_id: int,
     event_patch: EventPatch,
 ):
-    pass
+    return await event_service.patch_event(
+        session=db_session,
+        event_id=event_id,
+        event_patch=event_patch,
+    )
 
 
 @router.delete(
@@ -63,8 +81,11 @@ def patch_event_by_id(
     response_model=None,
     responses={404: ResourceNotFoundResponse},
 )
-def delete_event_by_id(
+async def delete_event_by_id(
     db_session: DatabaseWriteSession,
     event_id: int,
 ):
-    pass
+    return await event_service.delete_event(
+        session=db_session,
+        event_id=event_id,
+    )
