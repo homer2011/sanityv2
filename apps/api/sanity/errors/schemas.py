@@ -15,7 +15,7 @@ class ErrorResponse(BaseModel):
 
 
 BadRequestResponse: dict[str, Any] = {
-    "description": "Bad request",
+    "description": "Bad Request",
     "model": ErrorResponse,
 }
 
@@ -30,16 +30,16 @@ ForbiddenResponse: dict[str, Any] = {
 }
 
 ResourceNotFoundResponse: dict[str, Any] = {
-    "description": "Resource not found",
+    "description": "Resource Not Found",
     "model": ErrorResponse,
 }
 
 ResourceAlreadyExistsResponse: dict[str, Any] = {
-    "description": "Resource already exists",
+    "description": "Resource Already Exists",
     "model": ErrorResponse,
 }
 
 ServiceUnavailableResponse: dict[str, Any] = {
-    "description": "Service unavailable",
+    "description": "Service Unavailable",
     "model": ErrorResponse,
 }
