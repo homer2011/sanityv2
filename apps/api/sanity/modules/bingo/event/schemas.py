@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from sanity.common.utils import utc_now
 
-from .model import Event
+from .enums import EventStatus
 
 
 def normalise_utc(dt: datetime | None, *, field_name: str) -> datetime | None:
@@ -62,7 +62,7 @@ class EventBase(BaseModel):
     name: str
     starts_at: Optional[datetime]
     ends_at: Optional[datetime]
-    status: Event.Status
+    status: EventStatus
 
 
 class EventRead(EventBase):

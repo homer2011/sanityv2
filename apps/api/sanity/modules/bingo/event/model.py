@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import StrEnum
 
 from sqlalchemy import DateTime
 from sqlalchemy.dialects.postgresql import CITEXT
@@ -8,16 +7,12 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sanity.common.utils import utc_now
 from sanity.db.models import RecordModel
 
+from .enums import EventStatus
+
 
 # TODO: consider persisted lifecycle
 # TODO: consider soft-delete
 class Event(RecordModel):
-    class Status(StrEnum):
-        DRAFT = "DRAFT"
-        SCHEDULED = "SCHEDULED"
-        LIVE = "LIVE"
-        ENDED = "ENDED"
-
     __tablename__ = "events"
 
     name: Mapped[str] = mapped_column(
@@ -42,15 +37,15 @@ class Event(RecordModel):
     )
 
     @property
-    def status(self) -> Status:
+    def status(self) -> EventStatus:
         if self.starts_at is None or self.ends_at is None:
-            return self.Status.DRAFT
+            return EventStatus.DRAFT
 
         now = utc_now()
         if now < self.starts_at:
-            return self.Status.SCHEDULED
+            return EventStatus.SCHEDULED
 
         if now < self.ends_at:
-            return self.Status.LIVE
+            return EventStatus.LIVE
 
-        return self.Status.ENDED
+        return EventStatus.ENDED
