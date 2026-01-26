@@ -2,9 +2,10 @@ import asyncio
 from decimal import Decimal
 from typing import List, TypedDict
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 from sanity.db.core import async_session_factory
+from sanity.db.deps import AsyncSession
 from sanity.modules.bingo.boss.model import Boss
 from sanity.modules.bingo.boss.repository import BossRepository
 from sanity.modules.bingo.item.model import Item
@@ -606,9 +607,15 @@ async def create_seed_data(session: AsyncSession):
                 )
             )
             await session.flush()
-        except Exception:
+
+        except IntegrityError:
             await session.rollback()
             print(f"Boss {boss_dict['name']} already exists")
+
+        except Exception:
+            await session.rollback()
+            print(f"Seeding failed unexpectedly while inserting {boss_dict['name']}")
+            raise
 
     print("Seed data created successfully!")
 
@@ -617,8 +624,11 @@ async def main() -> None:
     """Load sample/test data into the database."""
 
     async with async_session_factory() as session:
-        await create_seed_data(session)
-        await session.commit()
+        try:
+            await create_seed_data(session)
+            await session.commit()
+        except Exception as e:
+            print("Something went wrong: ", e)
 
 
 if __name__ == "__main__":
