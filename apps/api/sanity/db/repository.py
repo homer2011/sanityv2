@@ -19,16 +19,8 @@ class RepositoryBase[T]:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    # ------------------
-    # Statement builders
-    # ------------------
-
     def get_base_statement(self) -> Select[tuple[T]]:
         return select(self.model)
-
-    # ------------
-    # Read methods
-    # ------------
 
     async def get_one(self, stmt: Select[tuple[T]]) -> T:
         result = await self.session.execute(stmt)
@@ -60,19 +52,7 @@ class RepositoryBase[T]:
 
         return (items, total)
 
-    # -------------
-    # Write methods
-    # -------------
-
-    async def create(
-        self,
-        obj: T,
-        *,
-        flush: bool = False,
-    ) -> T:
-        """
-        Stage a new row for INSERT.
-        """
+    async def create(self, obj: T, *, flush: bool = False) -> T:
         self.session.add(obj)
 
         if flush:
@@ -80,16 +60,7 @@ class RepositoryBase[T]:
 
         return obj
 
-    async def update(
-        self,
-        obj: T,
-        *,
-        update_dict: dict[str, Any],
-        flush: bool = False,
-    ) -> T:
-        """
-        Apply a partial update (patch) to an existing row.
-        """
+    async def update(self, obj: T, *, update_dict: dict[str, Any], flush: bool = False) -> T:
         for k, v in update_dict.items():
             setattr(obj, k, v)
 
@@ -101,7 +72,4 @@ class RepositoryBase[T]:
         return obj
 
     async def delete(self, obj: T) -> None:
-        """
-        Stage an existing row for DELETE.
-        """
         await self.session.delete(obj)
