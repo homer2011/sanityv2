@@ -1,13 +1,17 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime
 from sqlalchemy.dialects.postgresql import CITEXT
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sanity.common.utils import utc_now
 from sanity.db.models import RecordModel
 
 from .enums import EventStatus
+
+if TYPE_CHECKING:
+    from ..board.model import Board
 
 
 # TODO: consider persisted lifecycle
@@ -34,6 +38,12 @@ class Event(RecordModel):
         nullable=True,
         default=None,
         index=True,
+    )
+
+    board: Mapped["Board"] = relationship(
+        back_populates="event",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     @property
