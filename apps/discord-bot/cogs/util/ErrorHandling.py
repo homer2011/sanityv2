@@ -25,7 +25,7 @@ class ErrorHandling(commands.Cog):
                     rolelist = rolelist + f"<@&{error.missing_roles[role]}> "
 
             embed = discord.Embed(
-                description=f"You are missing any of these roles: {rolelist}"
+                description=f"{error} You are missing any of these roles: {rolelist}"
             )
             await ctx.respond(embed=embed,ephemeral=True)
 

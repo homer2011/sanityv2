@@ -5,6 +5,7 @@ from discord.ext import commands, bridge, pages
 from discord.ext.commands import has_any_role
 import datetime
 import gspread
+import re
 from discord.ui import InputText, Modal, button, Button, View
 from discord import Embed
 from .dropSubmit import getDisplayNameFromListOfuserIDs
@@ -16,6 +17,25 @@ from ..handlers.DatabaseHandler import add_boss, get_adminCommands_roles, testin
 from ..handlers.diaryHandler import checkUserDiary
 from ..handlers.EmbedHandler import embedVariable
 from math import ceil
+
+
+def format_application(application):
+    # Remove existing asterisks
+    application = application.replace("*", "")
+
+    # Pattern: matches text at start of line up to and including a colon
+    # BUT excludes lines that contain :// (URLs)
+    pattern = r'^(?!.*://)(.+?:)'
+
+    # Replace with bolded version, adding newlines for spacing
+    application = re.sub(
+        pattern,
+        r'\n**\1**\n',
+        application,
+        flags=re.MULTILINE
+    )
+
+    return application.strip()
 
 def getRoleId(name : str):
     mycursor.execute(
@@ -709,12 +729,44 @@ class Admin(commands.Cog):
 
         await ctx.respond(f"Refs for {member.display_name} have been updated to {refsDisplayNames}")"""
 
+    @discord.slash_command(guild_ids=testingservers, name="listrolemembers",
+                           description="Admin - List all members with a specific role")
+    @has_any_role(*admin_roles_ids)
+    async def listrolemembers(self, ctx: discord.ApplicationContext,
+                              role: discord.Option(discord.Role, description="Select the role")):
+
+        # Get all members with the specified role
+        members_with_role = [member.display_name for member in role.members]
+
+        if not members_with_role:
+            await ctx.respond(f"No members found with the role **{role.name}**.", ephemeral=True)
+            return
+
+        # Format the output
+        member_list = "\n".join(members_with_role)
+
+        # Check if the message is too long for Discord (2000 char limit)
+        if len(member_list) > 1900:  # Leave some room for the header
+            # Split into multiple messages or send as a file
+            await ctx.respond(
+                f"**Members with role {role.name}** ({len(members_with_role)} total):\n\nSending as file due to length...",
+                ephemeral=True)
+
+            # Create a text file with the member list
+            file_content = f"Members with role '{role.name}':\n\n" + member_list
+            file = discord.File(io.StringIO(file_content), filename=f"{role.name}_members.txt")
+            await ctx.send(file=file)
+        else:
+            await ctx.respond(f"**Members with role {role.name}** ({len(members_with_role)} total):\n{member_list}",
+                              ephemeral=True)
+
+
     @discord.slash_command(guild_ids=testingservers, name="eventwinnerrole",
                            description="Admin - Give someone bonus points for a lil")
     @has_any_role(*admin_roles_ids)
     async def eventwinnerrole(self, ctx: discord.ApplicationContext,
                              user: discord.Option(discord.Member, description="TAG THE GUY"),
-                             multiplier: discord.Option(int, "Which how much multiplication on points", autocomplete=multiplier_eventwinner),
+                             multiplier: discord.Option(float, "Which how much multiplication on points", autocomplete=multiplier_eventwinner),
                              days: discord.Option(int, "How long?", min_value=1, max_value=12)):
 
         #add user to eventWinnerMultiplier table
@@ -825,35 +877,17 @@ class Admin(commands.Cog):
                            description="Admin - new baby")
     @has_any_role(*admin_roles_ids)
     async def trial(self, ctx: discord.ApplicationContext,
-                    trial : discord.Option(discord.Member,"tag the trial!!!"),
-                    application: discord.Option(str, "copy pasta application")):
+                    trial: discord.Member,
+                    *, application: str):
         """post this when new trial joins"""
 
 
-        application = application.replace("*", "")
-        application = application.replace("Main RSN:", "\n**Main RSN:**\n")
-        application = application.replace("Alt RSN(s):", "\n**Alt RSN(s):**\n")
-        application = application.replace("Past RSN(s):","\n**Past RSN(s):**\n")
-        application = application.replace(
-            "Preferred Disc Name:",
-            "\n**Preferred Disc Name:**\n")
-        application = application.replace(
-            "Timezone:",
-            "\n**Timezone:**\n")
-        application = application.replace("Tell us about yourself:", "\n**Tell us about yourself:**\n")
-        application = application.replace("What is your main content? Please be specific to the scale and role that you do:",
-                                          "\n**What is your main content? Please be specific to the scale and role that you do:**\n")
-        application = application.replace("Previous clans and why you left:",
-                                          "\n**Previous clans and why you left:**\n")
-        application = application.replace("Do you know and have potted with any current Sanity members? Please list if applicable:", "\n**Do you know and have potted with any current Sanity members? Please list if applicable:**\n")
-        application = application.replace("Have you read the clan-rules ?:", "\n**Have you read the clan-rules ?:**\n")
-        application = application.replace("Would you like to add anything?", "\n**Would you like to add anything?**\n")
-        #new thingy
+        application = format_application(application)
 
         name = trial.display_name
         name = ''.join(x for x in name if x.isalpha() or x in ["0","1","2","3","4","5","6","7","8","9"])
 
-        trialData = getUserData(trial.id)
+        #trialData = getUserData(trial.id)
         now = datetime.datetime.now()
 
         try:
@@ -911,7 +945,7 @@ class Admin(commands.Cog):
         await trial_chan.send(embed=embed, view=trialFeedbackButton())
         if len(string_links) > 5:
             dingdonger = await trial_chan.send(string_links)
-            thread = await dingdonger.create_thread(name=f"{name}-app-chatter")
+        thread = await dingdonger.create_thread(name=f"{name}-app-chatter")
 
         #fakeping members in feedback channel
         all_ranks = get_all_ranks()

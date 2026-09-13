@@ -39,6 +39,63 @@ def getHiscorePbsIgnoreUrl(bossId : int, scale : int):
 
     return data
 
+MEDALS = {1: "🥇", 2: "🥈", 3: "🥉"}
+
+
+def build_pb_entries(pbdata, max_place: int = 3):
+    """
+    Turns raw pbdata rows into a ranked list of entries using DENSE ranking
+    (1,1,2 / 1,2,2 style) instead of always taking exactly N rows.
+
+    - Duplicate submissions from the same team (same memberids) are skipped,
+      same as before.
+    - Rank only increases when the time actually changes between two
+      (de-duplicated) entries.
+    - All entries whose rank is <= max_place are included, even if that means
+      more than max_place entries get returned because of a tie on the last
+      place shown (e.g. a 2-way tie for 3rd -> 4 entries returned).
+    """
+    entries = []
+    seen_teams = []
+    prev_time = None
+    rank = 0
+
+    for row in pbdata:
+        time_val, proof_url, members_str, boss_img, submitted_date, boss_name = row
+
+        membernames, memberids = turnListOfIds_into_names(str(members_str).split(","))
+
+        if memberids in seen_teams:
+            continue
+        seen_teams.append(memberids)
+
+        if time_val != prev_time:
+            rank += 1
+            prev_time = time_val
+
+        if rank > max_place:
+            break
+
+        entries.append({
+            "rank": rank,
+            "time": time_val,
+            "membernames": membernames,
+            "memberids": memberids,
+            "proof": proof_url,
+            "timestamp": submitted_date,
+        })
+
+    return entries
+
+
+def format_pb_entries(entries):
+    pb_msg = ""
+    for e in entries:
+        placemsg = MEDALS.get(e["rank"], f"{e['rank']}.")
+        pb_msg += f"{placemsg} `{e['time']}` - `{e['membernames']}` - <t:{round(e['timestamp'].timestamp())}:R> - [Proof]({e['proof']}) \n"
+    return pb_msg
+
+
 def getHiscorePbs(bossId : int, scale : int):
     mycursor.execute(
         f"select personalbests.time, personalbests.imageUrl, personalbests.members, bosses.imageUrl, personalbests.submittedDate, bosses.name "
@@ -142,37 +199,13 @@ async def updateHiScores():
                 pbdata = getHiscorePbs(bossId, int(boss_scale))
                 # print(F"DATA \n {pbdata}")
 
-                pb_msg = ""
-                counter = 0
-                list_of_team_ids = []
-                for x in range(min(3, (len(pbdata)))):
-                    membernames, memberids = turnListOfIds_into_names(str(pbdata[counter][2]).split(","))
-                    # print(membernames)
+                entries = build_pb_entries(pbdata, max_place=3)
+                pb_msg = format_pb_entries(entries)
 
-                    while memberids in list_of_team_ids and counter < 150:
-                        counter += 1
-                        membernames, memberids = turnListOfIds_into_names(str(pbdata[counter][2]).split(","))
-
-                    if x == 0:
-                        placemsg = "🥇"
-                    elif x == 1:
-                        placemsg = "🥈"
-                    elif x == 2:
-                        placemsg = "🥉"
-
-                    timestamp = pbdata[counter][4]
-
-                    pb_msg += f"{placemsg} `{pbdata[counter][0]}` - `{membernames}` - <t:{round(timestamp.timestamp())}:R> - [Proof]({pbdata[counter][1]}) \n"
-
-                    #list for adding roles
-                    for id in memberids:
-                        #print(f"added {id} -text: place: {x}  time:`{pbdata[counter][0]}` - {membernames}")
+                #list for adding roles (everyone shown, including tied 3rd+ places)
+                for e in entries:
+                    for id in e["memberids"]:
                         pb_top3_ids.append(id)
-
-                    #unique team ids ? idk tbh
-                    list_of_team_ids.append(memberids)
-
-                    counter += 1
 
                 embed = descriptionOnlyEmbed(title=f"**{getBossInfo(bossId)[1]}** - {get_scale_text(boss_scale)}",
                                              desc=f"{pb_msg}")
@@ -213,31 +246,8 @@ def pbEmbedMsg(bossId, scale):
     pbdata = getHiscorePbs(bossId, scale)
     # print(F"DATA \n {pbdata}")
 
-    pb_msg = ""
-    counter = 0
-    list_of_team_ids = []
-    for x in range(min(5, (len(pbdata)))):
-        membernames, memberids = turnListOfIds_into_names(str(pbdata[counter][2]).split(","))
-        # print(membernames)
-
-        while memberids in list_of_team_ids and counter < 150:
-            counter += 1
-            membernames, memberids = turnListOfIds_into_names(str(pbdata[counter][2]).split(","))
-
-        if x == 0:
-            placemsg = "🥇"
-        elif x == 1:
-            placemsg = "🥈"
-        elif x == 2:
-            placemsg = "🥉"
-
-        timestamp = pbdata[counter][4]
-
-        pb_msg += f"{placemsg} `{pbdata[counter][0]}` - `{membernames}` - <t:{round(timestamp.timestamp())}:R> - [Proof]({pbdata[counter][1]}) \n"
-
-        list_of_team_ids.append(memberids)
-
-        counter += 1
+    entries = build_pb_entries(pbdata, max_place=3)
+    pb_msg = format_pb_entries(entries)
 
     embed = descriptionOnlyEmbed(title=f"**{getBossInfo(bossId)[1]}** - {get_scale_text(scale)}", desc=f"{pb_msg}")
     return embed

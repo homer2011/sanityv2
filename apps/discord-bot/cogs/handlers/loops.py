@@ -47,6 +47,8 @@ def insertRankUpDelay(userId:int):
 
     # Subtract one day to get the last day of the current month
     last_day_of_month = first_day_next_month - datetime.timedelta(days=1)
+    print(last_day_of_month)
+    #print(userId)
 
     mycursor.execute(
         "insert into sanity2.rankupdelay (memberId, dateDelayedFrom)"
@@ -55,6 +57,7 @@ def insertRankUpDelay(userId:int):
     )
 
     db.commit()
+    #print("IS THIS THING ON???")
 
 def getUserRefs(userId:int):
     mycursor.execute(
@@ -150,6 +153,7 @@ def readytodemotecheck(userID : int):
         f"select * from sanity2.rankupdelay where memberID = {userID} and dateDelayedFrom > now() order by dateDelayedFrom desc"
     )
     data = mycursor.fetchall()
+
 
     #print(f"userID {userID} len {len(data)} data{data}")
 
@@ -677,7 +681,7 @@ checkUsersMissingDb.start()
 
 
 #### members ready for rankup!
-@tasks.loop(time=[time(hour=17, minute=1)]) #
+@tasks.loop(time=[time(hour=17, minute=1)]) # hour=17, minute=1)]
 async def checkIsInactiveList():
     print("START IsActive=0 checker!")
     active_users_list = get_all_inactive_users()
@@ -986,7 +990,7 @@ async def before():
 getDiscordImageUrl.start()
 
 #### members ready for rankup!
-@tasks.loop(time=[time(hour=18, minute=1)]) #
+@tasks.loop(time=[time(hour=18, minute=1)]) #was 18 1
 async def checkRankUps():
     print("START CheckRankUPS!")
 
@@ -1095,17 +1099,20 @@ async def checkRankUps():
                         await channel.send(embed=embed, view=view)
                 #rankup
                 elif max_role_id < rank_list[calculated_rank][0] and int(max_role_id) != 1: #PROMOTE
-                    #PROPOSE RANK CHANGE
-                    view = rankChangerView()
+                    check = readytodemotecheck(member_disc.id)
+                    if check == True:  # RANK UP
+                        #PROPOSE RANK CHANGE
+                        view = rankChangerView()
 
-                    old_rank_name = [id[1] for id in rank_list if id[0] == max_role_id][0]
-                    new_rank_name = [id[1] for id in rank_list if id[0] == rank_list[calculated_rank][0]][0]
+                        old_rank_name = [id[1] for id in rank_list if id[0] == max_role_id][0]
+                        new_rank_name = [id[1] for id in rank_list if id[0] == rank_list[calculated_rank][0]][0]
 
 
 
-                    embed = embedVariable(f"<:rankup:1302709869744230522> {member_disc.display_name} rank change",discord.Colour.yellow(),("MemberdiscID",member_disc.id), ("Previous rankID",max_role_id), ("New rankID", rank_list[calculated_rank][0]),
+                        embed = embedVariable(f"<:rankup:1302709869744230522> {member_disc.display_name} rank change",discord.Colour.yellow(),("MemberdiscID",member_disc.id), ("Previous rankID",max_role_id), ("New rankID", rank_list[calculated_rank][0]),
                                               ("Old rank name",old_rank_name),("New rank name",new_rank_name))
-                    await channel.send(embed=embed, view=view)
+
+                        await channel.send(embed=embed, view=view)
 
             else:
                 print(f"{member[0]} IS IN SERVer -> BUT NO ROLES")  # -> set to -1
@@ -1254,6 +1261,7 @@ class rankChangerView(View):  # for council / drop acceptors etc in #posted-drop
 
     @button(label="Delay until next month", custom_id="acceptor-decline-button-5", style=discord.ButtonStyle.danger, emoji="✖️")
     async def removeSubmission(self, button: Button, interaction: discord.Interaction):
+        print("line 1258 ok")
         channel = interaction.message.channel
         msg_to_edit = await channel.fetch_message(interaction.message.id)
         for embed in msg_to_edit.embeds:
@@ -1263,10 +1271,10 @@ class rankChangerView(View):  # for council / drop acceptors etc in #posted-drop
 
         embed = discord.Embed.from_dict(embed_dict)
         embed.color = discord.Color.red()
-
+        insertRankUpDelay(memberId)
         await interaction.message.edit(embed=embed,view=None)
 
-        insertRankUpDelay(memberId)
+
         #await interaction.response.send_message("The submission has been removed")
 
 
@@ -1380,7 +1388,7 @@ class Loops(commands.Cog):
                         # PROPOSE RANK CHANGE
 
                         # check if demotions delayed
-                        check = readytodemotecheck(member_disc.id)
+                        # check = readytodemotecheck(member_disc.id)
                         # if check == True:  # DEMOTE
                         old_rank_name = [id[1] for id in rank_list if id[0] == max_role_id][0]
                         new_rank_name = [id[1] for id in rank_list if id[0] == rank_list[calculated_rank][0]][0]
