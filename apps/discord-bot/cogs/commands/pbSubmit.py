@@ -1,10 +1,10 @@
 import discord
 from discord.ext import commands
 from discord.ui import View, Modal, InputText, Button, button
-from ..handlers.DatabaseHandler import testingservers, get_bosses, mycursor, get_channel, insert_Personal_Best,update_Personal_best, insert_audit_Logs, accept_decline_personalBest
+from ..handlers.DatabaseHandler import testingservers, get_bosses, mycursor, get_channel, insert_Personal_Best,update_Personal_best, insert_audit_Logs, accept_decline_personalBest, insert_Point_Tracker, update_user_points
 from ..handlers.EmbedHandler import embedVariable
 from ..util.CoreUtil import get_scale_text, uploadfile
-from .dropSubmit import imgurUrlSubmission
+from .dropSubmit import imgurUrlSubmission, getSetupValue
 import aiohttp
 from discord.commands import option
 from io import BytesIO
@@ -28,6 +28,137 @@ def getPBSubmissionStatus(id):
     status = mycursor.fetchall()[0][0]
 
     return status
+
+
+def parse_time_to_seconds(time_str) -> float:
+    """Converts a time string like '24:30', '18:57.00' or '12:11.40' into total seconds (float).
+    The part after the '.' is treated as centiseconds (hundredths of a second), matching how
+    pb submission times are formatted (time_miliseconds is always padded/stored as 2 digits)."""
+    time_str = str(time_str).strip()
+    minutes_part, _, seconds_part = time_str.partition(":")
+
+    if "." in seconds_part:
+        seconds_str, ms_str = seconds_part.split(".")
+        ms_str = ms_str.ljust(2, "0")[:2]
+        ms = int(ms_str)
+    else:
+        seconds_str = seconds_part
+        ms = 0
+
+    return int(minutes_part) * 60 + int(seconds_str) + (ms / 100)
+
+
+def get_diary_thresholds(bossId: int, scale: int):
+    """Returns (eliteSeconds, masterSeconds) for a given boss/scale, or (None, None) if there
+    are no diary times configured for that boss/scale (maxDifficulty = 0, or times missing/'0')."""
+    mycursor.execute(
+        f"select timeElite, timeMaster, maxDifficulty from sanity2.diarytimes where bossId = {bossId} and scale = {scale}"
+    )
+    result = mycursor.fetchall()
+
+    if not result:
+        return None, None
+
+    timeElite, timeMaster, maxDifficulty = result[0]
+
+    if not maxDifficulty or int(maxDifficulty) == 0:
+        return None, None
+    if not timeElite or not timeMaster or str(timeElite) == "0" or str(timeMaster) == "0":
+        return None, None
+
+    return parse_time_to_seconds(timeElite), parse_time_to_seconds(timeMaster)
+
+
+def get_pb_diary_tiers(bossId: int, scale: int, time_str):
+    """Returns a list of every diary tier the submitted time qualifies for, e.g. [], ['elite'],
+    or ['elite', 'master'] (a master time also qualifies for elite, since master is stricter)."""
+    eliteSeconds, masterSeconds = get_diary_thresholds(bossId, scale)
+
+    if eliteSeconds is None:
+        return []
+
+    submittedSeconds = parse_time_to_seconds(time_str)
+
+    tiers = []
+    if submittedSeconds <= eliteSeconds:
+        tiers.append("elite")
+    if submittedSeconds <= masterSeconds:
+        tiers.append("master")
+
+    return tiers
+
+
+def user_already_has_diary_tier(userId: int, bossId: int, scale: int, thresholdSeconds: float, exclude_submissionId: int) -> bool:
+    """Checks whether a user already has an ACCEPTED pb (status 2 or 6) at or below the given time
+    threshold for this boss/scale, looking at every submission other than the one currently
+    being accepted."""
+    mycursor.execute(
+        f"select members, time from sanity2.personalbests "
+        f"where bossId = {bossId} and scale = {scale} and status in (2, 6) and submissionId != {exclude_submissionId}"
+    )
+    rows = mycursor.fetchall()
+
+    for members_str, time_str in rows:
+        if not members_str:
+            continue
+
+        member_ids = [m.strip() for m in str(members_str).split(",")]
+        if str(userId) not in member_ids:
+            continue
+
+        try:
+            if parse_time_to_seconds(time_str) <= thresholdSeconds:
+                return True
+        except (ValueError, IndexError):
+            continue
+
+    return False
+
+
+def award_diary_carry_points(submissionId: int, bossId: int, scale: int, time_str, members_str, reviewedDate):
+    """Awards diary carry points to teammates who already had the elite and/or master diary time on
+    this boss/scale, based on how many teammates in this pb did NOT already have that tier (i.e.
+    were carried). If the pb qualifies for BOTH elite and master, both get awarded and stack
+    (rather than only awarding master) - each tier is evaluated independently, since a given
+    teammate might already have elite but not master (or vice versa)."""
+    tiers = get_pb_diary_tiers(bossId, scale, time_str)
+    if not tiers:
+        return
+
+    eliteSeconds, masterSeconds = get_diary_thresholds(bossId, scale)
+    member_ids = [m.strip() for m in str(members_str).split(",") if m.strip()]
+
+    for tier in tiers:
+        thresholdSeconds = masterSeconds if tier == "master" else eliteSeconds
+
+        pointValue = getSetupValue(f"{tier} diary carry")  # "elite diary carry" / "master diary carry"
+        try:
+            pointValue = int(pointValue)
+        except (TypeError, ValueError):
+            pointValue = 0
+
+        if pointValue <= 0:
+            continue
+
+        already_have = []
+        carried = []
+
+        for memberId in member_ids:
+            if user_already_has_diary_tier(int(memberId), bossId, scale, thresholdSeconds, submissionId):
+                already_have.append(memberId)
+            else:
+                carried.append(memberId)
+
+        # nobody already had this tier (first clear for the whole team) or nobody was carried
+        # into it (everyone already had it) - nothing to award for THIS tier
+        if not already_have or not carried:
+            continue
+
+        pointsToAward = pointValue * len(carried)
+
+        for userId in already_have:
+            update_user_points(int(userId), pointsToAward)
+            insert_Point_Tracker(int(userId), pointsToAward, reviewedDate, f"{tier} diary carry - pb #{submissionId}")
 
 async def boss_searcher(ctx : discord.AutocompleteContext):
     """
@@ -68,9 +199,9 @@ class pbsubmissionAcceptor(View):  # for council / drop acceptors etc in #posted
         submissionId = int(str(embed_dict["title"]).split("- ")[1])
 
         mycursor.execute(
-            f"select members from sanity2.personalbests where submissionId = {submissionId}"
+            f"select members, bossId, scale, time from sanity2.personalbests where submissionId = {submissionId}"
         )
-        table = mycursor.fetchall()[0][0]
+        table, pb_bossId, pb_scale, pb_time = mycursor.fetchall()[0]
         #print(table)
 
         boss_name = embed_dict["fields"][0]["value"]
@@ -81,6 +212,8 @@ class pbsubmissionAcceptor(View):  # for council / drop acceptors etc in #posted
         user_id = interaction.user.id
 
         accept_decline_personalBest(submissionId=submissionId,reviewedBy=user_id,reviewedDate=now,status=2)
+
+        award_diary_carry_points(submissionId, pb_bossId, pb_scale, pb_time, table, now)
 
         url = interaction.message.embeds[0].image.url
         async with aiohttp.ClientSession() as session:  # creates session
@@ -134,7 +267,6 @@ class pbsubmissionAcceptor(View):  # for council / drop acceptors etc in #posted
                     embed.color = embed.colour.red()
 
         await interaction.message.edit(view=None, embed=embed)
-
 
 class submissionButtons(View):  # button
     def __init__(self, author):

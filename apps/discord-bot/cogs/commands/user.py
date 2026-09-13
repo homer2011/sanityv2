@@ -1730,12 +1730,12 @@ class User(commands.Cog):
         }
 
         if not competitionid:
-            competitionid = 102053
+            competitionid = 127257
 
-        description = ['abyssal_sire', 'alchemical_hydra', 'artio', 'callisto',
+        description = ['abyssal_sire', 'alchemical_hydra', 'artio','brutus', 'callisto',
                        'calvarion', 'cerberus', 'chambers_of_xeric', 'chambers_of_xeric_challenge_mode',
                        'chaos_elemental', 'commander_zilyana', 'corporeal_beast',
-                       'dagannoth_prime', 'dagannoth_rex', 'dagannoth_supreme',
+                       'dagannoth_prime', 'dagannoth_rex', 'dagannoth_supreme', 'doom_of_mokhaiotl',
                        'duke_sucellus', 'general_graardor', 'giant_mole',
                        'grotesque_guardians', 'kalphite_queen', 'king_black_dragon', 'kraken', 'kreearra',
                        'kril_tsutsaroth', 'nex', 'nightmare', 'phosanis_nightmare',
@@ -1793,7 +1793,7 @@ class User(commands.Cog):
             sheets_input.append(player_data)
 
         # print data to google sheet
-        sheetUrl = "https://docs.google.com/spreadsheets/d/14Bw1c_sD3Bl_nB-BIV-tAktzi8Fo_eki416t59WKylY/edit?gid=1066031678#gid=1066031678"
+        sheetUrl = "https://docs.google.com/spreadsheets/d/1VNfNG8O9lk8P6drz3xDgtekriVuc1UGYRoUhhgSNP8w/edit?pli=1&gid=1066031678#gid=1066031678"
         tabName = "bingobosskc"
 
         try:

@@ -1,4 +1,5 @@
 import math
+import random
 import time
 
 from PIL import Image
@@ -17,6 +18,14 @@ from io import BytesIO
 import requests
 import asyncio
 import aiohttp
+
+def getSetupValue(search:str):
+    mycursor.execute(f"SELECT Value FROM sanity2.setupValues sv where sv.Name = '{search}'")
+    try:
+        SetupValue = mycursor.fetchone()[0]
+    except:
+        SetupValue = 0
+    return SetupValue
 
 def getUserFromDisplayName(name:str):
     mycursor.execute(
@@ -127,22 +136,57 @@ def getSubmissionStatus(id):
 
     return status
 
+def _drop_match_rank(query: str, drop: str):
+    """
+        Returns a rank (lower = better match) for a drop against a query,
+        or None if it doesn't match at all.
+
+        0 -> drop name starts with the query
+        1 -> some word within the drop name starts with the query
+        2 -> query just appears somewhere in the drop name
+    """
+    q = query.lower()
+    d = drop.lower()
+
+    if not q:
+        return 2  # empty query - everything matches equally, fall back to alphabetical
+
+    if d.startswith(q):
+        return 0
+
+    if any(word.startswith(q) for word in d.split()):
+        return 1
+
+    if q in d:
+        return 2
+
+    return None
+
+def _filter_and_sort_drops(query: str, drop_names):
+    ranked = []
+    for drop in drop_names:
+        rank = _drop_match_rank(query, drop)
+        if rank is not None:
+            ranked.append((rank, drop))
+
+    # sort by rank first (priority), then alphabetically within same rank
+    ranked.sort(key=lambda item: (item[0], item[1].lower()))
+
+    return [drop for _, drop in ranked]
+
 async def drop_searcher(ctx : discord.AutocompleteContext):
     """
-        Returns a list of matching DROPS from the DROPS table list."""
+        Returns a list of matching DROPS from the DROPS table list,
+        prioritizing names that start with the searched value."""
 
     drop_names = get_drop_names()
 
-    return [
-        drop for drop in drop_names if (ctx.value.lower() in drop.lower())
-    ]
+    return _filter_and_sort_drops(ctx.value, drop_names)
 
 async def bingo_drop_searcher(ctx : discord.AutocompleteContext):
     drop_names = get_bingo_drop_names()
 
-    return [
-        drop for drop in drop_names if (ctx.value.lower() in drop.lower())
-    ]
+    return _filter_and_sort_drops(ctx.value, drop_names)
 
 def getDropData(dropId : int): #returns participants
     mycursor.execute(
@@ -214,6 +258,9 @@ class submissionAcceptor(View):  # for council / drop acceptors etc in #posted-d
             #print(submissionTable)
             participants = submissionTable[0][2].split(",")
 
+            cap_trial = getSetupValue('trial point cap') #250
+            cap_member = getSetupValue('point cap') #250
+
             if drop_name == "Diary Carry":
                 trial_count = 0
             else:
@@ -225,17 +272,17 @@ class submissionAcceptor(View):  # for council / drop acceptors etc in #posted-d
                     if member.endswith("*"): #is trial
                         if trial_count > 1: # 2trials
                             member_id = int(member.replace("*",""))
-                            point_gain = min(50, math.ceil((drop_value / (len(participants)+non_clannies) * 2)))
+                            point_gain = min(cap_trial, math.ceil((drop_value / (len(participants)+non_clannies) * 2)))
                         else:
                             member_id = int(member.replace("*", ""))
-                            point_gain = min(50, math.ceil((drop_value / (len(participants) + non_clannies))))
+                            point_gain = min(cap_trial, math.ceil((drop_value / (len(participants) + non_clannies))))
                     else:
                         if "*" in submissionTable[0][2] and trial_count > 0:
                             member_id = int(member)
-                            point_gain = min(250, math.ceil((drop_value / (len(participants)+non_clannies)) * 2))
+                            point_gain = min(cap_member, math.ceil((drop_value / (len(participants)+non_clannies)) * 2))
                         else:
                             member_id = int(member)
-                            point_gain = min(250, math.ceil((drop_value / (len(participants) + non_clannies))))
+                            point_gain = min(cap_member, math.ceil((drop_value / (len(participants) + non_clannies))))
 
                     #adapt points to cap at 500
                     if leaguePointsGained >= 500: #cap at 500
@@ -255,17 +302,17 @@ class submissionAcceptor(View):  # for council / drop acceptors etc in #posted-d
                     if member.endswith("*"): #is trial
                         if trial_count > 1: # 2trials
                             member_id = int(member.replace("*",""))
-                            point_gain = min(50, math.ceil((drop_value / (len(participants)+non_clannies) * 2)))
+                            point_gain = min(cap_trial, math.ceil((drop_value / (len(participants)+non_clannies) * 2)))
                         else:
                             member_id = int(member.replace("*", ""))
-                            point_gain = min(50, math.ceil((drop_value / (len(participants) + non_clannies))))
+                            point_gain = min(cap_trial, math.ceil((drop_value / (len(participants) + non_clannies))))
                     else:
                         if "*" in submissionTable[0][2] and trial_count > 0:
                             member_id = int(member)
-                            point_gain = min(250, math.ceil((drop_value / (len(participants)+non_clannies)) * 2))
+                            point_gain = min(cap_member, math.ceil((drop_value / (len(participants)+non_clannies)) * 2))
                         else:
                             member_id = int(member)
-                            point_gain = min(250, math.ceil((drop_value / (len(participants) + non_clannies))))
+                            point_gain = min(cap_member, math.ceil((drop_value / (len(participants) + non_clannies))))
                     insert_Point_Tracker(member_id, point_gain, now, f"{drop_name},{drop_value},{(len(participants) + non_clannies)}", submissionId)
                     update_user_points(member_id,point_gain)
 
@@ -472,11 +519,14 @@ class submissionButtons(View):  # button for user
         embed_message = ""
         sql_message = []
 
+        trial_point_cap = getSetupValue('trial point cap')  # 250
+        point_cap = getSetupValue('point cap')  # 250
+
         for clannie_id in clannies_list:  ##calculate individual point gain
             # print(clannie_id)
             if int(clannie_id) in trial_id_list and drop_name != "Diary Carry":  # user is trial
                 # print(f"{clannie_id} is a trial")
-                cap = 50
+                cap = trial_point_cap
                 points = min(base_split_amount*trial_multiplier, cap)
 
                 if multiplyPoints > 1:
@@ -486,7 +536,7 @@ class submissionButtons(View):  # button for user
                 sql_message.append(f"{clannie_id}*")
 
             else:
-                cap = 250
+                cap = point_cap
                 points = min(trial_multiplied_amount, cap)
 
                 if multiplyPoints > 1:
@@ -674,19 +724,21 @@ class acceptorEditSubmissionModal(Modal):  # modal to edit msg
         embed_message = ""
         sql_message = []
 
+        trial_point_cap = getSetupValue('trial point cap')  # 250
+        point_cap = getSetupValue('point cap')  # 250
 
         for clannie_id in clannies_list:  ##calculate individual point gain
             # print(clannie_id)
             if int(clannie_id) in trial_id_list:  # user is trial
                 # print(f"{clannie_id} is a trial")
-                cap = 50
+                cap = trial_point_cap
                 points = min(base_split_amount * trial_multiplier, cap)
 
                 embed_message += f"<@{clannie_id}>(trial)+`{points}` "
                 sql_message.append(f"{clannie_id}*")
 
             else:
-                cap = 250
+                cap = point_cap
                 points = min(trial_multiplied_amount, cap)
 
                 embed_message += f"<@{clannie_id}>+`{points}` "
@@ -973,6 +1025,34 @@ class Submit(commands.Cog):
                 await ctx.send(content=f"please tag the members in the raid like **{ctx.author.mention}**, instead of using text", delete_after=15)
         else:
             await ctx.send(content=f"You need to either choose imgur URL or attach a file! https://i.imgur.com/JYYjQIb.png", delete_after=15)
+
+    @discord.slash_command(guild_ids=testingservers, name="iron_submit", description="submit your IRON drops for double points")
+    async def iron_submit(self, ctx: discord.ApplicationContext,
+                           drop_name: discord.Option(str, "Submit drop name", autocomplete=bingo_drop_searcher),
+                           drop_value: discord.Option(int, "ONLY rounded Millions - Greater of GE or pinned values",
+                                                      min_value=0, max_value=10000),
+                           tag_clannies_here: discord.Option(str, "Mention the participants (only from sanity)",
+                                                             max_length=850),
+                          irons_in_raid: discord.Option(int, "How many irons in Raid", min_value=0, max_value=100,
+                                                        default=1),
+                           imgur_url: discord.Option(str, "Put imgur url here! - only need to do imgur OR attachment",
+                                                     required=False),
+                           image: discord.Option(discord.Attachment,
+                                                 "Attach image here - only need to do imgur OR attachment",
+                                                 required=False),
+                           non_clannies: discord.Option(int, "How many non-clannies", min_value=0, max_value=100,
+                                                        default=0, required=False),
+                           extra_note: discord.Option(str, "Add any notes that could help council (KC, scale whatever)",
+                                                      max_length=300, required=False)):
+
+        randint = random.randint(1, 3)
+
+        if randint == 1:
+            await ctx.send(f"please tag the members in the raid like **{ctx.author.mention}**, instead of using text")
+        if randint == 2:
+            await ctx.send(f"You need to either choose imgur URL or attach a file! https://i.imgur.com/JYYjQIb.png" )
+        if randint == 3:
+            await ctx.send("Make sure to pick a drop from the dropdown")
 
 
     @discord.slash_command(guild_ids=testingservers, name="bingo_submit", description="submit your BINGO drops")
